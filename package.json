@@ -1,18 +1,16 @@
 {
-  "name": "video_lesson_platform",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "video-lesson-platform",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^5.2.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "^4.0.1",
+    "express": "^4.22.1",
+    "http-errors": "~1.6.3",
+    "morgan": "^1.10.1"
   }
 }
