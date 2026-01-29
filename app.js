@@ -6,8 +6,22 @@ let logger = require('morgan');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
+let authRouter = require('./routes/auth');
+
+let expressLayouts = require('express-ejs-layouts');
 
 let app = express();
+
+// default title and pagecss definitions
+app.use((req, res, next) => {
+  res.locals.title = 'Video Lesson Platform';
+  res.locals.pageCss = null;
+  next();
+});
+
+// layout setup
+app.use(expressLayouts);
+app.set('layout', 'layout');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,6 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
