@@ -12,9 +12,7 @@ Make sure you update to the latest version of Node: Node.js v20.18.2
 4. Install dependencies: 
 ```npm install```
 5. Launch app on localhost: 
-```node app.js```
-6. Alternatively use nodemon for live changes to the server without having to restart:
-```nodemon app.js```
+```npm start``
 
 # Development Branch Strategy
 No development beyond initial setup should be done on main.
