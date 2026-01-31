@@ -7,6 +7,9 @@ let logger = require('morgan');
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 let authRouter = require('./routes/auth');
+let coursesRouter = require('./routes/courses');
+let lessonsRouter = require('./routes/lessons');
+let adminRouter = require('./routes/admin');
 
 let expressLayouts = require('express-ejs-layouts');
 
@@ -27,15 +30,22 @@ app.set('layout', 'layout');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// middleware setup
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// route setup
+// public routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
+// protected routes
+app.use('/courses', coursesRouter);
+app.use('/lessons', lessonsRouter);
+app.use('/admin', adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

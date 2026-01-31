@@ -1,0 +1,94 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 14px;
+  background: #fff;
+}
+
+.card-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.card-desc {
+  margin: 0 0 10px 0;
+  opacity: 0.9;
+}
+
+.card-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.input,
+.textarea {
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: black;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link {
+  text-decoration: none;
+}
+
+.error {
+  background: rgba(255, 0, 0, 0.08);
+  border: 1px solid rgba(255, 0, 0, 0.25);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.error-message {
+  margin: 0;
+  color: red;
+  font-size: 14px;
+}
