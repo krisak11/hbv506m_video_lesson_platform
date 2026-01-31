@@ -10,8 +10,10 @@
     <ul class="card-list">
       <% courses.forEach(course => { %>
         <li class="card">
-          <h2 class="card-title"><%= course.title %></h2>
-          <p class="card-desc"><%= course.description %></p>
+        <h2 class="card-title">
+            <a class="link" href="/courses/<%= course.id %>"><%= course.title %></a>
+        </h2>          
+        <p class="card-desc"><%= course.description %></p>
           <div class="card-meta">
             <span>ID: <%= course.id %></span>
             <span>Created: <%= course.created_at %></span>
