@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
 
+# Database files
+data/*.db
+data/*.db-journal
+
 # Environment variables
 .env
 .env.local
