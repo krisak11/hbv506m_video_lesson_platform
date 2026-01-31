@@ -92,3 +92,40 @@
   color: red;
   font-size: 14px;
 }
+
+/* ===== Buttons ===== */
+
+.btn-secondary {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f1f1f1;
+  color: #000;
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+.btn-danger {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #c62828;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ===== Card actions ===== */
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

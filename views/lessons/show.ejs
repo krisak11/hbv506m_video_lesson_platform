@@ -1,0 +1,35 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1><%= lesson.title %></h1>
+      <p class="muted">
+        Course: <strong><%= course ? course.title : 'Unknown' %></strong>
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
+      <a class="link" href="/lessons?course_id=<%= lesson.course_id %>">← Back to Lessons</a>
+    </div>
+  </header>
+
+  <% if (lesson.description) { %>
+    <p><%= lesson.description %></p>
+  <% } else { %>
+    <p class="muted">No description provided.</p>
+  <% } %>
+
+  <div class="card">
+    <div class="card-meta">
+      <span>Published: <%= lesson.is_published ? 'Yes' : 'No' %></span>
+      <span>Position: <%= lesson.position %></span>
+      <span>ID: <%= lesson.id %></span>
+    </div>
+
+    <% if (lesson.video_url) { %>
+      <p><strong>Video URL:</strong> <a href="<%= lesson.video_url %>"><%= lesson.video_url %></a></p>
+    <% } else { %>
+      <p class="muted">No video URL set.</p>
+    <% } %>
+  </div>
+</div>

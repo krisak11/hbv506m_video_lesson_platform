@@ -1,0 +1,49 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Lessons</h1>
+      <p class="muted">
+        Course: <strong><%= course.title %></strong>
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a class="btn" href="/lessons/new?course_id=<%= course.id %>">+ New Lesson</a>
+      <a class="link" href="/courses">← Back to Courses</a>
+    </div>
+  </header>
+
+  <% if (!lessons || lessons.length === 0) { %>
+    <p>No lessons yet. Create your first lesson for this course.</p>
+  <% } else { %>
+    <ul class="card-list">
+      <% lessons.forEach(lesson => { %>
+        <li class="card">
+          <div class="card-row">
+            <h2 class="card-title"><%= lesson.title %></h2>
+            <span class="badge"><%= lesson.is_published ? 'Published' : 'Draft' %></span>
+          </div>
+
+          <% if (lesson.description) { %>
+            <p class="card-desc"><%= lesson.description %></p>
+          <% } %>
+
+          <div class="card-meta">
+            <span>Position: <%= lesson.position %></span>
+            <span>ID: <%= lesson.id %></span>
+          </div>
+
+          <div class="card-actions">
+            <a class="btn-secondary" href="/lessons/<%= lesson.id %>">View</a>
+            <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
+
+            <form method="POST" action="/lessons/<%= lesson.id %>/delete" class="inline-form"
+                  onsubmit="return confirm('Delete this lesson?');">
+              <button class="btn-danger" type="submit">Delete</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>

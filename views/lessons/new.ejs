@@ -1,0 +1,51 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Create Lesson</h1>
+      <p class="muted">
+        Course: <strong><%= course.title %></strong>
+      </p>
+    </div>
+    <a class="link" href="/lessons?course_id=<%= course.id %>">← Back to Lessons</a>
+  </header>
+
+  <% if (error) { %>
+    <div class="error"><%= error %></div>
+  <% } %>
+
+  <form class="form" method="POST" action="/lessons">
+    <input type="hidden" name="course_id" value="<%= course.id %>">
+
+    <label class="label">
+      Title
+      <input class="input" type="text" name="title" value="<%= form.title %>" required>
+    </label>
+
+    <label class="label">
+      Description (optional)
+      <textarea class="textarea" name="description" rows="4"><%= form.description %></textarea>
+    </label>
+
+    <label class="label">
+      Video URL (optional)
+      <input class="input" type="text" name="video_url" value="<%= form.video_url %>">
+    </label>
+
+    <div class="form-row">
+      <label class="label">
+        Position
+        <input class="input" type="number" name="position" min="0" value="<%= form.position %>">
+      </label>
+
+      <label class="label">
+        Published
+        <select class="input" name="is_published">
+          <option value="0" <%= String(form.is_published) === '0' ? 'selected' : '' %>>Draft</option>
+          <option value="1" <%= String(form.is_published) === '1' ? 'selected' : '' %>>Published</option>
+        </select>
+      </label>
+    </div>
+
+    <button class="btn" type="submit">Create</button>
+  </form>
+</div>
