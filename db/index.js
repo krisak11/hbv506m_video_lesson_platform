@@ -10,7 +10,7 @@ fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
 
 // Good defaults
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+db.pragma('journal_mode = WAL'); // Better concurrency & crash resilience
+db.pragma('foreign_keys = ON'); // Enforce foreign key constraints
 
 module.exports = db;

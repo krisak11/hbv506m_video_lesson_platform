@@ -4,6 +4,8 @@ node_modules/
 # Database files
 data/*.db
 data/*.db-journal
+data/*.db-wal
+data/*.db-shm
 
 # Environment variables
 .env
