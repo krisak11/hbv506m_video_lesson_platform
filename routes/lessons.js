@@ -27,22 +27,6 @@ router.get('/', function (req, res, next) {
   }
 });
 
-// GET /lessons/:id - show lesson detail
-router.get('/:id', function (req, res, next) {
-  try {
-    res.locals.pageCss = '/stylesheets/pages/courses.css';
-
-    const id = parseInt(req.params.id, 10);
-    const lesson = lessonsRepo.getLessonById(id);
-    if (!lesson) return res.status(404).send('Lesson not found');
-
-    const course = coursesRepo.getCourseById(lesson.course_id);
-
-    res.render('lessons/show', { lesson, course });
-  } catch (err) {
-    next(err);
-  }
-});
 
 
 // GET /lessons/new?course_id=1 - show create lesson form
@@ -210,5 +194,23 @@ router.post('/:id/delete', function (req, res, next) {
     next(err);
   }
 });
+
+// GET /lessons/:id - show lesson detail
+router.get('/:id', function (req, res, next) {
+  try {
+    res.locals.pageCss = '/stylesheets/pages/courses.css';
+
+    const id = parseInt(req.params.id, 10);
+    const lesson = lessonsRepo.getLessonById(id);
+    if (!lesson) return res.status(404).send('Lesson not found');
+
+    const course = coursesRepo.getCourseById(lesson.course_id);
+
+    res.render('lessons/show', { lesson, course });
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 module.exports = router;

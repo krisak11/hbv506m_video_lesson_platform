@@ -4,6 +4,8 @@ var express = require('express');
 var router = express.Router();
 
 const coursesRepo = require('../db/coursesRepo');
+const lessonsRepo = require('../db/lessonsRepo');
+
 
 // GET /courses - list courses
 router.get('/', function (req, res, next) {
@@ -21,6 +23,27 @@ router.get('/new', function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     res.render('courses/new', { form: { title: '', description: '' }, error: null });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /courses/:id - course detail page (with lessons). 
+// Must be after /new route!
+router.get('/:id', function (req, res, next) {
+  try {
+    res.locals.pageCss = '/stylesheets/pages/courses.css';
+
+    const id = parseInt(req.params.id, 10);
+    const course = coursesRepo.getCourseById(id);
+
+    if (!course) {
+      return res.status(404).send('Course not found');
+    }
+
+    const lessons = lessonsRepo.getLessonsByCourseId(id, { includeUnpublished: true });
+
+    res.render('courses/show', { course, lessons });
   } catch (err) {
     next(err);
   }
