@@ -1,0 +1,58 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Admin Monitor</h1>
+      <p class="muted">Basic monitoring output (no auth required yet).</p>
+    </div>
+    <a class="link" href="/">← Home</a>
+  </header>
+
+  <section class="panel">
+    <h2>Server Uptime</h2>
+    <pre class="pre"><%= uptimeOutput %></pre>
+  </section>
+
+  <section class="panel">
+    <h2>Latest Audit Logs (DB)</h2>
+
+    <% if (!latestLogs || latestLogs.length === 0) { %>
+      <p class="muted">No audit logs found.</p>
+    <% } else { %>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Severity</th>
+              <th>Event</th>
+              <th>Actor</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% latestLogs.forEach(log => { %>
+              <tr>
+                <td><%= log.created_at %></td>
+                <td><span class="badge badge-<%= log.severity %>"><%= log.severity %></span></td>
+                <td><%= log.event_type %></td>
+                <td><%= log.actor_user_id || '-' %></td>
+                <td><%= log.message || '' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="panel">
+    <h2>Application Log (File)</h2>
+    <p class="muted">Path: <code><%= logPath %></code></p>
+
+    <% if (!fileLogTail) { %>
+      <p class="muted">No log file found yet. Create logs/app.log or add request logging middleware.</p>
+    <% } else { %>
+      <pre class="pre"><%= fileLogTail %></pre>
+    <% } %>
+  </section>
+</div>
