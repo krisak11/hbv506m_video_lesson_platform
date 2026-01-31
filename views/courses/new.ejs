@@ -1,0 +1,24 @@
+<div class="page">
+  <header class="page-header">
+    <h1>Create Course</h1>
+    <a class="link" href="/courses">← Back to Courses</a>
+  </header>
+
+  <% if (error) { %>
+    <div class="error"><%= error %></div>
+  <% } %>
+
+  <form class="form" method="POST" action="/courses">
+    <label class="label">
+      Title
+      <input class="input" type="text" name="title" value="<%= form.title %>" required>
+    </label>
+
+    <label class="label">
+      Description
+      <textarea class="textarea" name="description" rows="6" required><%= form.description %></textarea>
+    </label>
+
+    <button class="btn" type="submit">Create</button>
+  </form>
+</div>

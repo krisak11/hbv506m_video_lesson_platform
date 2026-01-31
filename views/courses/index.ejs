@@ -1,0 +1,23 @@
+<div class="page">
+  <header class="page-header">
+    <h1>Courses</h1>
+    <a class="btn" href="/courses/new">+ New Course</a>
+  </header>
+
+  <% if (!courses || courses.length === 0) { %>
+    <p>No courses yet. Create your first course.</p>
+  <% } else { %>
+    <ul class="card-list">
+      <% courses.forEach(course => { %>
+        <li class="card">
+          <h2 class="card-title"><%= course.title %></h2>
+          <p class="card-desc"><%= course.description %></p>
+          <div class="card-meta">
+            <span>ID: <%= course.id %></span>
+            <span>Created: <%= course.created_at %></span>
+          </div>
+        </li>
+      <% }); %>
+    </ul>
+  <% } %>
+</div>

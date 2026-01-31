@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET register page. */
 router.get('/register', function(req, res, next) {
-  res.render('register', {
+  res.render('auth/register', {
     title: 'Register',
     pageCss: '/stylesheets/pages/register.css'
   });
