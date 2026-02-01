@@ -1,4 +1,5 @@
-<div>
+<div class="form-shell">
+  <a class="back-link" href="/lessons?course_id=<%= course.id %>">← Back to Lessons</a>
   <header class="page-header">
     <div>
       <h1>Create Lesson</h1>
@@ -6,7 +7,6 @@
         Course: <strong><%= course.title %></strong>
       </p>
     </div>
-    <a class="link" href="/lessons?course_id=<%= course.id %>">← Back to Lessons</a>
   </header>
 
   <% if (error) { %>

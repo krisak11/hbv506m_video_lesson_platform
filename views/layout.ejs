@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %></title>
   <link rel="stylesheet" href="/stylesheets/main.css">
 
@@ -11,14 +12,19 @@
 </head>
 <body>
   <header class="site-header">
-    <a href="/" class="header-content">
-      <img 
-        class="header-logo" 
-        src="/images/education-icon.png" 
-        alt="Video Lesson Platform logo"
-      >
-      <span class="header-title">Video Lesson Platform</span>
-    </a>
+    <div class="header-inner">
+      <a href="/" class="header-company-name">
+        <img
+          class="header-logo"
+          src="/images/academia-icon.png"
+          alt="Video Lesson Platform logo"
+        >
+        <span class="header-title">Video Lesson Platform</span>
+      </a>
+      <a class="header-nav" href="#">
+        <img class="header-user-icon" src="/images/user-icon.png" alt="User profile">
+      </a>
+    </div>
   </header>
   <main class="main">
     <div class="page">

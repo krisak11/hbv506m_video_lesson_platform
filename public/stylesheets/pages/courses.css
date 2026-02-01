@@ -45,8 +45,20 @@
 
 .form {
   display: grid;
-  gap: 12px;
-  max-width: 640px;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.form-shell {
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-shell .form {
+  margin: 0;
 }
 
 .label {
@@ -73,10 +85,6 @@
   color: white;
   text-decoration: none;
   font-weight: 600;
-}
-
-.link {
-  text-decoration: none;
 }
 
 .error {
