@@ -1,4 +1,5 @@
-<div class="page">
+<div>
+  <a class="link" href="/lessons?course_id=<%= lesson.course_id %>">← Back to Lessons</a>
   <header class="page-header">
     <div>
       <h1><%= lesson.title %></h1>
@@ -9,7 +10,6 @@
 
     <div class="header-actions">
       <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
-      <a class="link" href="/lessons?course_id=<%= lesson.course_id %>">← Back to Lessons</a>
     </div>
   </header>
 

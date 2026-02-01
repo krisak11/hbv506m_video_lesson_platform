@@ -9,8 +9,21 @@
     <link rel="stylesheet" href="<%= pageCss %>">
   <% } %>
 </head>
-
 <body>
-  <%- body %>
+  <header class="site-header">
+    <a href="/" class="header-content">
+      <img 
+        class="header-logo" 
+        src="/images/education-icon.png" 
+        alt="Video Lesson Platform logo"
+      >
+      <span class="header-title">Video Lesson Platform</span>
+    </a>
+  </header>
+  <main class="main">
+    <div class="page">
+      <%- body %>
+    </div>
+  </main>
 </body>
 </html>
