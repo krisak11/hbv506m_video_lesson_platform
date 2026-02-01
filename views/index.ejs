@@ -1,21 +1,14 @@
-<body>
-  <div class="index-page">
-    <div>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </div>
+<div class="index-page">
+  <div class="index-hero">
+    <section class="welcome-section">
+      <h1><%= title %></h1>
+      <p>Welcome to <%= title %>. Browse the course catalog and start learning!</p>
+    </section>
+    <section class="btn-actions">
+      <a class="btn primary" href="/courses">Browse Courses</a>
 
-  <div>
-  <h1><%= title %></h1>
-  <p><a href="/courses">Browse Courses</a></p>
+      <!-- TEMP: admin monitoring link (remove once auth is enforced) -->
+      <a class="btn secondary" href="/admin/monitor">Admin Dashboard</a>
+    </section>
   </div>
-
-<!-- TEMP: admin monitoring link (remove once auth is enforced) -->
-
-  <div>
-    <h1> <%= title %></h1>
-    <p><a href="/admin/monitor">Admin Dashboard</a></p>
-  </div>
-  </div>
-
-</body>
+</div>
