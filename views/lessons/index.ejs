@@ -1,4 +1,5 @@
-<div class="page">
+<div>
+  <a class="link" href="/courses">← Back to Courses</a>
   <header class="page-header">
     <div>
       <h1>Lessons</h1>
@@ -9,8 +10,6 @@
 
     <div class="header-actions">
       <a class="btn" href="/lessons/new?course_id=<%= course.id %>">+ New Lesson</a>
-      <a class="link" href="/courses">← Back to Courses</a>
-    </div>
   </header>
 
   <% if (!lessons || lessons.length === 0) { %>

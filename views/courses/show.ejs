@@ -1,12 +1,12 @@
-<div class="page">
+<div>
+  <a class="link" href="/courses">← Back to Courses</a>
   <header class="page-header">
-    <div>
+    <div class="page-header-content">
       <h1><%= course.title %></h1>
       <p class="muted"><%= course.description %></p>
     </div>
 
     <div class="header-actions">
-      <a class="btn-secondary" href="/courses">← Back</a>
       <a class="btn" href="/lessons/new?course_id=<%= course.id %>">+ New Lesson</a>
     </div>
   </header>
