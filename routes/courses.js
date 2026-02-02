@@ -28,6 +28,33 @@ router.get('/new', function (req, res, next) {
   }
 });
 
+// GET /courses/:id/edit - show edit form
+// Must be before /:id route! 
+router.get('/:id/edit', function (req, res, next) {
+  try {
+    res.locals.pageCss = '/stylesheets/pages/courses.css';
+
+    const id = parseInt(req.params.id, 10);
+    const course = coursesRepo.getCourseById(id);
+
+    if (!course) {
+      return res.status(404).send('Course not found');
+    }
+
+    res.render('courses/edit', {
+      course,
+      form: {
+        title: course.title || '',
+        description: course.description || '',
+      },
+      error: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 // GET /courses/:id - course detail page (with lessons). 
 // Must be after /new route!
 router.get('/:id', function (req, res, next) {
@@ -44,6 +71,52 @@ router.get('/:id', function (req, res, next) {
     const lessons = lessonsRepo.getLessonsByCourseId(id, { includeUnpublished: true });
 
     res.render('courses/show', { course, lessons });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /courses/:id - update course
+router.post('/:id', function (req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const existing = coursesRepo.getCourseById(id);
+
+    if (!existing) {
+      return res.status(404).send('Course not found');
+    }
+
+    const title = (req.body.title || '').trim();
+    const description = (req.body.description || '').trim();
+
+    if (!title || !description) {
+      res.locals.pageCss = '/stylesheets/pages/courses.css';
+      return res.status(400).render('courses/edit', {
+        course: existing,
+        form: { title, description },
+        error: 'Title and description are required.',
+      });
+    }
+
+    coursesRepo.updateCourse(id, { title, description });
+    res.redirect(`/courses/${id}`);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /courses/:id/delete - delete course
+router.post('/:id/delete', function (req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const course = coursesRepo.getCourseById(id);
+
+    if (!course) {
+      return res.status(404).send('Course not found');
+    }
+
+    coursesRepo.deleteCourse(id);
+    res.redirect('/courses');
   } catch (err) {
     next(err);
   }
