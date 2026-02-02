@@ -28,7 +28,7 @@ router.get('/monitor', function (req, res, next) {
   }
 
   // Tail file log (optional)
-  const logPath = path.join(__dirname, '..', 'logs', 'app.log');
+  const logPath = process.env.LOG_PATH || path.join(__dirname, '..', 'logs', 'app.log');
   const fileLogTail = tailFile(logPath, 120);
 
   // OS Uptime command 
