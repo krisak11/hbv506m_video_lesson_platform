@@ -105,6 +105,22 @@ router.post('/:id', function (req, res, next) {
   }
 });
 
+// POST /courses/:id/delete - delete course
+router.post('/:id/delete', function (req, res, next) {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const course = coursesRepo.getCourseById(id);
+
+    if (!course) {
+      return res.status(404).send('Course not found');
+    }
+
+    coursesRepo.deleteCourse(id);
+    res.redirect('/courses');
+  } catch (err) {
+    next(err);
+  }
+});
 
 // POST /courses - create course
 router.post('/', function (req, res, next) {

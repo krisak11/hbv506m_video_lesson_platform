@@ -17,7 +17,8 @@
     <div class="error"><%= error %></div>
   <% } %>
 
-  <form class="form" method="POST" action="/lessons/<%= lesson.id %>">
+  <!-- Update form (inputs only) -->
+  <form id="lesson-edit-form" class="form" method="POST" action="/lessons/<%= lesson.id %>">
     <label class="label">
       Title
       <input class="input" type="text" name="title" value="<%= form.title %>" required>
@@ -47,14 +48,15 @@
         </select>
       </label>
     </div>
-
-    <div class="card-actions">
-      <button class="btn" type="submit">Save</button>
-
-      <form method="POST" action="/lessons/<%= lesson.id %>/delete" class="inline-form"
-            onsubmit="return confirm('Delete this lesson?');">
-        <button class="btn-danger" type="submit">Delete</button>
-      </form>
-    </div>
   </form>
+
+  <!-- Actions row -->
+  <div class="card-actions">
+    <button class="btn" type="submit" form="lesson-edit-form">Save</button>
+
+    <form method="POST" action="/lessons/<%= lesson.id %>/delete" class="inline-form"
+          onsubmit="return confirm('Delete this lesson?');">
+      <button class="btn-danger" type="submit">Delete</button>
+    </form>
+  </div>
 </div>
