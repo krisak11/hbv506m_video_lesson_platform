@@ -3,6 +3,8 @@ var router = express.Router();
 
 const lessonsRepo = require('../db/lessonsRepo');
 const coursesRepo = require('../db/coursesRepo');
+const { safeAuditLog } = require('../utils/auditLogger');
+
 
 // GET /lessons?course_id=1 - list lessons for a course
 router.get('/', function (req, res, next) {
@@ -87,7 +89,7 @@ router.post('/', function (req, res, next) {
       });
     }
 
-    lessonsRepo.createLesson({
+    const newID = lessonsRepo.createLesson({
       course_id: courseId,
       title,
       description,
@@ -95,6 +97,15 @@ router.post('/', function (req, res, next) {
       position: Number.isFinite(position) ? position : 0,
       is_published,
     });
+
+    safeAuditLog({
+        event_type: 'lesson_created',
+        severity: 'info',
+        actor_user_id: req.user?.id ?? null,
+        ip: req.ip,
+        message: `Lesson created in course ${courseId}  (lessonID: ${newID}) ${title}`,
+        metadata: { course_id: courseId, title }
+    })
 
     res.redirect(`/lessons?course_id=${courseId}`);
   } catch (err) {
@@ -173,6 +184,16 @@ router.post('/:id', function (req, res, next) {
       is_published,
     });
 
+    // Log audit event (non-blocking)
+    safeAuditLog({
+        event_type: 'lesson_updated',
+        severity: 'info',
+        ip: req.ip,
+        actor_user_id: req.user?.id ?? null,
+        message: `Lesson updated (ID: ${id}): ${title}`,
+        metadata: { lesson_id: id, title }
+    })
+
     res.redirect(`/lessons?course_id=${lesson.course_id}`);
   } catch (err) {
     next(err);
@@ -187,8 +208,17 @@ router.post('/:id/delete', function (req, res, next) {
     if (!lesson) {
       return res.status(404).send('Lesson not found');
     }
-
+    const title = lesson.title;
     lessonsRepo.deleteLesson(id);
+    // Log audit event (non-blocking)
+    safeAuditLog({
+        event_type: 'lesson_deleted',
+        severity: 'info',
+        actor_user_id: req.user?.id ?? null,
+        ip: req.ip,
+        message: `Lesson deleted (ID: ${id}): ${title}`,
+        metadata: { lesson_id: id, title }
+    })
     res.redirect(`/lessons?course_id=${lesson.course_id}`);
   } catch (err) {
     next(err);

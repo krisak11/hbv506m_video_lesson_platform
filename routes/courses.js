@@ -5,7 +5,8 @@ var router = express.Router();
 
 const coursesRepo = require('../db/coursesRepo');
 const lessonsRepo = require('../db/lessonsRepo');
-
+const auditLogsRepo = require('../db/auditLogsRepo');
+const { safeAuditLog } = require('../utils/auditLogger');
 
 // GET /courses - list courses
 router.get('/', function (req, res, next) {
@@ -76,6 +77,42 @@ router.get('/:id', function (req, res, next) {
   }
 });
 
+// POST /courses - create course
+router.post('/', function (req, res, next) {
+  try {
+    const title = (req.body.title || '').trim();
+    const description = (req.body.description || '').trim();
+
+    // Very basic validation for now
+    if (!title || !description) {
+      res.locals.pageCss = '/stylesheets/pages/courses.css';
+      return res.status(400).render('courses/new', {
+        form: { title, description },
+        error: 'Title and description are required.',
+      });
+    }
+
+    // Create nwe course with newID for logging purposes.
+    const newId = coursesRepo.createCourse({ title, description });
+
+    // Log audit event (non-blocking)
+    safeAuditLog({
+        event_type: 'course_created',
+        severity: 'info',
+        actor_user_id: req.user?.id ?? null, // no auth yet
+        ip: req.ip,
+        message: `Course created: ${title}`,
+        metadata: { course_id: newId }
+    });
+
+    res.redirect('/courses');
+
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 // POST /courses/:id - update course
 router.post('/:id', function (req, res, next) {
   try {
@@ -99,6 +136,17 @@ router.post('/:id', function (req, res, next) {
     }
 
     coursesRepo.updateCourse(id, { title, description });
+    
+    // Log audit event (non-blocking)
+    safeAuditLog({ 
+        event_type: 'course_updated',
+        severity: 'info',
+        actor_user_id: req.user?.id ?? null,
+        ip: req.ip,
+        message: `Course updated: ${title}`,
+        metadata: { course_id: id }
+    });
+    
     res.redirect(`/courses/${id}`);
   } catch (err) {
     next(err);
@@ -115,30 +163,22 @@ router.post('/:id/delete', function (req, res, next) {
       return res.status(404).send('Course not found');
     }
 
+    const title = course.title;
+
     coursesRepo.deleteCourse(id);
+
+    // Log audit event (non-blocking)
+    safeAuditLog({
+        event_type: 'course_deleted',
+        severity: 'warn',
+        actor_user_id: req.user?.id ?? null,
+        ip: req.ip,
+        message: `Course deleted: ${title}`,
+        metadata: { course_id: id }
+    });
+
     res.redirect('/courses');
-  } catch (err) {
-    next(err);
-  }
-});
 
-// POST /courses - create course
-router.post('/', function (req, res, next) {
-  try {
-    const title = (req.body.title || '').trim();
-    const description = (req.body.description || '').trim();
-
-    // Very basic validation for now
-    if (!title || !description) {
-      res.locals.pageCss = '/stylesheets/pages/courses.css';
-      return res.status(400).render('courses/new', {
-        form: { title, description },
-        error: 'Title and description are required.',
-      });
-    }
-
-    coursesRepo.createCourse({ title, description });
-    res.redirect('/courses');
   } catch (err) {
     next(err);
   }

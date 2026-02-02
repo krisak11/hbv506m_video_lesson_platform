@@ -31,7 +31,7 @@ router.get('/monitor', function (req, res, next) {
   const logPath = path.join(__dirname, '..', 'logs', 'app.log');
   const fileLogTail = tailFile(logPath, 120);
 
-  // Uptime command
+  // OS Uptime command 
   exec('uptime', { timeout: 1500 }, (err, stdout, stderr) => {
     const uptimeOutput = err
       ? `Error running uptime: ${err.message}`
