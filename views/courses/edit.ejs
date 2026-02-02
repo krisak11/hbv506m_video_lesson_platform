@@ -1,0 +1,31 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Edit Course</h1>
+      <p class="muted">Course ID: <%= course.id %></p>
+    </div>
+
+    <div class="header-actions">
+      <a class="btn-secondary" href="/courses/<%= course.id %>">View</a>
+      <a class="link" href="/courses">← Back to Courses</a>
+    </div>
+  </header>
+
+  <% if (error) { %>
+    <div class="error"><%= error %></div>
+  <% } %>
+
+  <form class="form" method="POST" action="/courses/<%= course.id %>">
+    <label class="label">
+      Title
+      <input class="input" type="text" name="title" value="<%= form.title %>" required>
+    </label>
+
+    <label class="label">
+      Description
+      <textarea class="textarea" name="description" rows="6" required><%= form.description %></textarea>
+    </label>
+
+    <button class="btn" type="submit">Save</button>
+  </form>
+</div>
