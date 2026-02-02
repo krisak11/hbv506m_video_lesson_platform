@@ -96,11 +96,10 @@ router.post('/', function (req, res, next) {
     const newId = coursesRepo.createCourse({ title, description });
 
     // Log audit event (non-blocking)
-    safeAuditLog({
+    safeAuditLog(req,{
         event_type: 'course_created',
         severity: 'info',
         actor_user_id: req.user?.id ?? null, // no auth yet
-        ip: req.ip,
         message: `Course created: ${title}`,
         metadata: { course_id: newId }
     });
@@ -138,11 +137,10 @@ router.post('/:id', function (req, res, next) {
     coursesRepo.updateCourse(id, { title, description });
     
     // Log audit event (non-blocking)
-    safeAuditLog({ 
+    safeAuditLog(req, { 
         event_type: 'course_updated',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        ip: req.ip,
         message: `Course updated: ${title}`,
         metadata: { course_id: id }
     });
@@ -168,11 +166,10 @@ router.post('/:id/delete', function (req, res, next) {
     coursesRepo.deleteCourse(id);
 
     // Log audit event (non-blocking)
-    safeAuditLog({
+    safeAuditLog(req, {
         event_type: 'course_deleted',
         severity: 'warn',
         actor_user_id: req.user?.id ?? null,
-        ip: req.ip,
         message: `Course deleted: ${title}`,
         metadata: { course_id: id }
     });

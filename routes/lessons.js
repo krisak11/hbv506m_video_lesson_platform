@@ -98,11 +98,10 @@ router.post('/', function (req, res, next) {
       is_published,
     });
 
-    safeAuditLog({
+    safeAuditLog(req, {
         event_type: 'lesson_created',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        ip: req.ip,
         message: `Lesson created in course ${courseId}  (lessonID: ${newID}) ${title}`,
         metadata: { course_id: courseId, title }
     })
@@ -185,10 +184,9 @@ router.post('/:id', function (req, res, next) {
     });
 
     // Log audit event (non-blocking)
-    safeAuditLog({
+    safeAuditLog(req, {
         event_type: 'lesson_updated',
         severity: 'info',
-        ip: req.ip,
         actor_user_id: req.user?.id ?? null,
         message: `Lesson updated (ID: ${id}): ${title}`,
         metadata: { lesson_id: id, title }
@@ -211,11 +209,10 @@ router.post('/:id/delete', function (req, res, next) {
     const title = lesson.title;
     lessonsRepo.deleteLesson(id);
     // Log audit event (non-blocking)
-    safeAuditLog({
+    safeAuditLog(req,{
         event_type: 'lesson_deleted',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        ip: req.ip,
         message: `Lesson deleted (ID: ${id}): ${title}`,
         metadata: { lesson_id: id, title }
     })
