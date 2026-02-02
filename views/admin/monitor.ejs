@@ -26,6 +26,7 @@
               <th>Severity</th>
               <th>Event</th>
               <th>Actor</th>
+              <th>IP Address</th>
               <th>Message</th>
             </tr>
           </thead>
@@ -36,6 +37,7 @@
                 <td><span class="badge badge-<%= log.severity %>"><%= log.severity %></span></td>
                 <td><%= log.event_type %></td>
                 <td><%= log.actor_user_id || '-' %></td>
+                <td><%= log.ip_address || '-' %></td>
                 <td><%= log.message || '' %></td>
               </tr>
             <% }) %>

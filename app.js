@@ -1,8 +1,9 @@
-let createError = require('http-errors');
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser');
-let logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const fs = require('fs');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
@@ -30,7 +31,27 @@ app.set('layout', 'layout');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// Express will respect X-Forwarded-For header
+// when determining req.ip for logging and audit purposes
+app.set('trust proxy', true); 
+
+
 // middleware setup
+
+// ensure logs directory exists
+const logsDir = path.join(__dirname, 'logs');
+fs.mkdirSync(logsDir, { recursive: true });
+
+// create write stream for application logs
+const accessLogStream = fs.createWriteStream(
+  path.join(logsDir, 'app.log'),
+  { flags: 'a' }
+);
+
+// log HTTP requests to file
+app.use(logger('combined', { stream: accessLogStream }));
+
+// also log to console
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
