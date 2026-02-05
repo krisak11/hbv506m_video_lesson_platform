@@ -2,7 +2,7 @@ const Database = require('better-sqlite3'); // SQLite library, synchronous and f
 const path = require('path'); // For handling file paths
 const fs = require('fs'); // File system module
 
-const dbPath = path.join(__dirname, '..', 'data', 'app.db'); // Path to the SQLite database file
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'app.db'); // Path to the SQLite database file
 
 // Ensure data folder exists
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });

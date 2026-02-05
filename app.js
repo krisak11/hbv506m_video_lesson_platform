@@ -38,17 +38,18 @@ app.set('trust proxy', true);
 
 // middleware setup
 
-// ensure logs directory exists
-const logsDir = path.join(__dirname, 'logs');
-fs.mkdirSync(logsDir, { recursive: true });
+// ensure logs directory exists and create write stream for application logs
 
-// create write stream for application logs
-const accessLogStream = fs.createWriteStream(
-  path.join(logsDir, 'app.log'),
-  { flags: 'a' }
-);
+const defaultLogFile = path.join(__dirname, 'logs', 'app.log');
+const logFilePath = process.env.LOG_PATH || defaultLogFile;
 
-// log HTTP requests to file
+// Ensure the parent directory exists
+fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
+
+// Create write stream for application logs
+const accessLogStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+
+// Log HTTP requests to file
 app.use(logger('combined', { stream: accessLogStream }));
 
 // also log to console
