@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
+const passwordPolicy = require("./utils/passwordPolicy");
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
