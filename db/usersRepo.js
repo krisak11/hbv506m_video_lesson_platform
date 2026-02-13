@@ -13,7 +13,12 @@ function createUser({ email, password_hash, display_name}) {
         INSERT INTO users (email, password_hash, display_name)
         VALUES (?, ?, ?)
     `).run(email, password_hash, display_name || null)
-    return result.lastInsertRowid
+    
+    return {
+        id: result.lastID,
+        display_name,
+        role: 'user'
+    };
 }
 
 function updatePassword(id, password_hash) {

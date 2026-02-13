@@ -13,19 +13,27 @@ module.exports = {
 
         password_hash = await bcrypt.hash(password, saltRounds)
 
-        const userId = usersRepo.createUser({ email, password_hash, display_name })
+        const user = usersRepo.createUser({ email, password_hash, display_name })
 
-        return { id: userId, role: 'user' }
+        return { 
+            id: user.id, 
+            display_name: user.display_name,
+            role: user.role 
+        }
     },
 
     async login({ email, password }) {
-        const user = usersRepo.findByEmail(email)
+        const user = usersRepo.getUserByEmail(email)
 
         if (!user) throw new Error("Invalid Credentials")
 
         const match = await bcrypt.compare(password, user.password_hash)
         if (!match) throw new Error ("Invalid Crednetials")
 
-        return { id: user.id, role: user.role }
+        return { 
+            id: user.id, 
+            display_name: user.display_name,
+            role: user.role 
+        }
     }
 }
