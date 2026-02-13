@@ -2,6 +2,17 @@
   <div class="index-hero">
     <section class="welcome-section">
       <h1><%= title %></h1>
+
+
+      <!-- TEMP: logout and user print info-->
+      <h3>Logged in as: <b><%= user.display_name %></b></h3>
+      <form action="/auth/logout" method="POST" style="display:inline;">
+        <button type="submit" class="header-nav-btn">
+          Logout
+        </button>
+      </form>
+
+
       <p>Welcome to <%= title %>. Browse the course catalog and start learning!</p>
     </section>
     <section class="btn-actions">

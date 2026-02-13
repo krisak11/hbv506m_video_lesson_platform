@@ -1,5 +1,6 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const authService = require('../services/authService');
 
 /* GET register page. */
 router.get('/register', function(req, res, next) {
@@ -9,13 +10,49 @@ router.get('/register', function(req, res, next) {
   });
 });
 
+/* GET login page. */
+router.get('/login', function(req, res, next) {
+  res.render('auth/login', {
+    title: 'Register',
+    pageCss: '/stylesheets/pages/register.css'
+  });
+});
+
 /* POST register page. */
-router.post('/register', (req, res) => {
-  const { email, password } = req.body;
+router.post('/register', async (req, res) => {
+  try {
+    const user = await authService.register(req.body)
 
-  // TODO: validation + DB logic
+    req.session.user = user
 
-  res.redirect('/');
+    res.redirect('/')
+  } catch (err) {
+    res.status(400).send(err.message)
+  }
+});
+
+/* POST login page. */
+router.post('/login', async (req, res) => {
+  try {
+    const user = await authService.login(req.body)
+
+    req.session.user = user
+
+    res.redirect('/')
+  } catch (err) {
+    res.status(400).send(err.message)
+  }
+});
+
+router.post('/logout', async (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).send('Logout unsuccessful')
+    }
+
+    res.clearCookie('connect.sid')
+    res.redirect('/auth/login')
+  })
 });
 
 module.exports = router;

@@ -1,14 +1,9 @@
 <div class="register-page">
   <div class="register-card">
     <h1 class="app-title">Video Lesson Platform</h1>
-    <h2 class="page-title">Register</h2>
+    <h2 class="page-title">Login</h2>
 
-    <form action="/auth/register" method="POST">
-      <div class="form-group">
-        <label for="display_name">Name</label>
-        <input id="display_name" type="display_name" name="display_name" required />
-      </div>
-
+    <form action="/auth/login" method="POST">
       <div class="form-group">
         <label for="email">Email</label>
         <input id="email" type="email" name="email" required />
@@ -19,14 +14,13 @@
         <input id="password" type="password" name="password" required />
       </div>
 
-      <button type="submit">Register</button>
+      <button type="submit">Login</button>
     </form>
 
-    <div class="divider">already have an account?</div>
+    <div class="divider">or</div>
 
-    <a href="/auth/login" class="btn-secondary">
-      Login
+    <a href="/auth/register" class="btn-secondary">
+      Create an Account
     </a>
-
   </div>
 </div>

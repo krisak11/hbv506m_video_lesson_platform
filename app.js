@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
+const session = require('express-session');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
@@ -11,6 +12,9 @@ let authRouter = require('./routes/auth');
 let coursesRouter = require('./routes/courses');
 let lessonsRouter = require('./routes/lessons');
 let adminRouter = require('./routes/admin');
+
+// Middleware
+const requireAuth = require('./utils//middleware/requireAuth');
 
 let expressLayouts = require('express-ejs-layouts');
 
@@ -36,8 +40,6 @@ app.set('view engine', 'ejs');
 app.set('trust proxy', true); 
 
 
-// middleware setup
-
 // ensure logs directory exists and create write stream for application logs
 
 const defaultLogFile = path.join(__dirname, 'logs', 'app.log');
@@ -58,6 +60,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: 'tHIiQGMZ$p#8XbU2CLX4PaS!M5GCpU8jd',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+app.use((req, res, next) => {
+  const publicPaths = ['/auth/login', '/auth/register']
+
+  if (publicPaths.includes(req.path)) {
+    return next();
+  }
+
+  return requireAuth(req, res, next);
+})
+app.use((req, res, next) => {
+  res.locals.user = req.session.user;
+  next();
+});
 
 // route setup
 // public routes
