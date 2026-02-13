@@ -23,6 +23,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
+/* POST login page. */
 router.post('/login', async (req, res) => {
   try {
     const user = await authService.login(req.body)

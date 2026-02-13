@@ -13,6 +13,9 @@ let coursesRouter = require('./routes/courses');
 let lessonsRouter = require('./routes/lessons');
 let adminRouter = require('./routes/admin');
 
+// Middleware
+const requireAuth = require('./utils//middleware/requireAuth');
+
 let expressLayouts = require('express-ejs-layouts');
 
 let app = express();
@@ -36,8 +39,6 @@ app.set('view engine', 'ejs');
 // when determining req.ip for logging and audit purposes
 app.set('trust proxy', true); 
 
-
-// middleware setup
 
 // ensure logs directory exists and create write stream for application logs
 
@@ -69,6 +70,16 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
+app.use((req, res, next) => {
+  const publicPaths = ['/auth/login', '/auth/register']
+
+  if (publicPaths.includes(req.path)) {
+    return next();
+  }
+
+  return requireAuth(req, res, next);
+})
+
 
 // route setup
 // public routes
