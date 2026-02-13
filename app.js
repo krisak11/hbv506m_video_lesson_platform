@@ -79,7 +79,10 @@ app.use((req, res, next) => {
 
   return requireAuth(req, res, next);
 })
-
+app.use((req, res, next) => {
+  res.locals.user = req.session.user;
+  next();
+});
 
 // route setup
 // public routes

@@ -10,6 +10,14 @@ router.get('/register', function(req, res, next) {
   });
 });
 
+/* GET login page. */
+router.get('/login', function(req, res, next) {
+  res.render('auth/login', {
+    title: 'Register',
+    pageCss: '/stylesheets/pages/register.css'
+  });
+});
+
 /* POST register page. */
 router.post('/register', async (req, res) => {
   try {
@@ -34,26 +42,6 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(400).send(err.message)
   }
-});
-
-
-
-
-/* GET login page. */
-router.get('/login', function(req, res, next) {
-  res.render('auth/login', {
-    title: 'Register',
-    pageCss: '/stylesheets/pages/register.css'
-  });
-});
-
-/* POST register page. */
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-  // TODO: validation + DB logic
-
-  res.redirect('/');
 });
 
 module.exports = router;
