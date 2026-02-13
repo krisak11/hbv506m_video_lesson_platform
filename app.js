@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
+const passwordPolicy = require("./utils/passwordPolicy");
 const session = require('express-session');
 
 let indexRouter = require('./routes/index');
