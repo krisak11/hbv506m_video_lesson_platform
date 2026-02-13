@@ -1,9 +1,8 @@
 .register-page {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f6f7f9;
 }
 
 .register-card {
@@ -75,4 +74,45 @@ button {
 
 button:hover {
   background-color: #3a68e0;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background-color: #2c7be5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #1a68d1;
+}
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  text-align: center;
+  background-color: white;
+  color: #2c7be5;
+  border: 2px solid #2c7be5;
+  border-radius: 6px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background-color: #f0f6ff;
+}
+
+.divider {
+  margin: 15px 0;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
 }

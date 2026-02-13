@@ -36,4 +36,24 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+
+
+/* GET login page. */
+router.get('/login', function(req, res, next) {
+  res.render('auth/login', {
+    title: 'Register',
+    pageCss: '/stylesheets/pages/register.css'
+  });
+});
+
+/* POST register page. */
+router.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  // TODO: validation + DB logic
+
+  res.redirect('/');
+});
+
 module.exports = router;
