@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
+const session = require('express-session');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
@@ -58,6 +59,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+  secret: 'tHIiQGMZ$p#8XbU2CLX4PaS!M5GCpU8jd',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
 
 // route setup
 // public routes
