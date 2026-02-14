@@ -15,7 +15,7 @@ function createUser({ email, password_hash, display_name}) {
     `).run(email, password_hash, display_name || null)
     
     return {
-        id: result.lastID,
+        id: result.lastInsertRowid, // better-sqlite3 uses lastInsertRowid instead of lastID.
         display_name,
         role: 'user'
     };
