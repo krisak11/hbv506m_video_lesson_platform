@@ -72,15 +72,7 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
-app.use((req, res, next) => {
-  const publicPaths = ['/auth/login', '/auth/register']
 
-  if (publicPaths.includes(req.path)) {
-    return next();
-  }
-
-  return requireAuth(req, res, next);
-})
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
@@ -92,9 +84,9 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 // protected routes
-app.use('/courses', coursesRouter);
-app.use('/lessons', lessonsRouter);
-app.use('/admin', adminRouter);
+app.use('/courses', requireAuth, coursesRouter);
+app.use('/lessons', requireAuth, lessonsRouter);
+app.use('/admin', requireAuth, adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
