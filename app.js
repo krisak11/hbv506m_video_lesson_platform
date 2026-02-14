@@ -62,12 +62,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'tHIiQGMZ$p#8XbU2CLX4PaS!M5GCpU8jd',
+  secret: process.env.SESSION_SECRET || 'dev-only-secret-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false,
+    sameSite: 'lax', // 'lax' for general use, 'strict' for maximum protection, or 'none' if cross-site cookies are needed (requires secure: true)
+    secure: process.env.NODE_ENV === 'production', // Only send cookies over HTTPS in production
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
