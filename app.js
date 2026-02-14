@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env file
+require('dotenv').config();
 
 const createError = require('http-errors');
 const express = require('express');
@@ -6,7 +6,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
-const passwordPolicy = require("./utils/passwordPolicy");
 const session = require('express-session');
 
 let indexRouter = require('./routes/index');
@@ -16,95 +15,96 @@ let coursesRouter = require('./routes/courses');
 let lessonsRouter = require('./routes/lessons');
 let adminRouter = require('./routes/admin');
 
-// Middleware
 const requireAuth = require('./utils//middleware/requireAuth');
-
 let expressLayouts = require('express-ejs-layouts');
 
-let app = express();
+function createApp({ sessionStore } = {}) {
+  const app = express();
 
-// default title and pagecss definitions
-app.use((req, res, next) => {
-  res.locals.title = 'Video Lesson Platform';
-  res.locals.pageCss = null;
-  next();
-});
+  // defaults for views
+  app.use((req, res, next) => {
+    res.locals.title = 'Video Lesson Platform';
+    res.locals.pageCss = null;
+    next();
+  });
 
-// layout setup
-app.use(expressLayouts);
-app.set('layout', 'layout');
+  app.use(expressLayouts);
+  app.set('layout', 'layout');
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, 'views'));
+  app.set('view engine', 'ejs');
 
-// Express will respect X-Forwarded-For header
-// when determining req.ip for logging and audit purposes
-app.set('trust proxy', true); 
+  app.set('trust proxy', true);
 
+  // --------------------------
+  // Logging
+  // --------------------------
+  const defaultLogFile = path.join(__dirname, 'logs', 'app.log');
+  const logFilePath = process.env.LOG_PATH || defaultLogFile;
+  fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
 
-// ensure logs directory exists and create write stream for application logs
+  const accessLogStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+  app.use(logger('combined', { stream: accessLogStream }));
+  app.use(logger('dev'));
 
-const defaultLogFile = path.join(__dirname, 'logs', 'app.log');
-const logFilePath = process.env.LOG_PATH || defaultLogFile;
+  // --------------------------
+  // Parsers / static
+  // --------------------------
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser());
+  app.use(express.static(path.join(__dirname, 'public')));
 
-// Ensure the parent directory exists
-fs.mkdirSync(path.dirname(logFilePath), { recursive: true });
+  // --------------------------
+  // Session middleware (store injected)
+  // --------------------------
+  const sessionOptions = {
+    secret: process.env.SESSION_SECRET || 'dev-only-secret-change-me',
+    resave: false,
+    saveUninitialized: false,
+    proxy: true,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  };
 
-// Create write stream for application logs
-const accessLogStream = fs.createWriteStream(logFilePath, { flags: 'a' });
-
-// Log HTTP requests to file
-app.use(logger('combined', { stream: accessLogStream }));
-
-// also log to console
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-only-secret-change-me',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax', // 'lax' for general use, 'strict' for maximum protection, or 'none' if cross-site cookies are needed (requires secure: true)
-    secure: process.env.NODE_ENV === 'production', // Only send cookies over HTTPS in production
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  if (sessionStore) {
+    sessionOptions.store = sessionStore;
   }
-}));
 
-// This should be after session middleware so that req.session is available, and before route handlers so that user info is available in all views.
-app.use((req, res, next) => {
-  res.locals.user = req.session.user;
-  next();
-});
+  app.use(session(sessionOptions));
 
-// route setup
-// public routes
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/auth', authRouter);
-// protected routes
-app.use('/courses', requireAuth, coursesRouter);
-app.use('/lessons', requireAuth, lessonsRouter);
-app.use('/admin', requireAuth, adminRouter);
+  app.use((req, res, next) => {
+    res.locals.user = req.session.user;
+    next();
+  });
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+  // --------------------------
+  // Routes
+  // --------------------------
+  app.use('/', indexRouter);
+  app.use('/users', usersRouter);
+  app.use('/auth', authRouter);
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  app.use('/courses', requireAuth, coursesRouter);
+  app.use('/lessons', requireAuth, lessonsRouter);
+  app.use('/admin', requireAuth, adminRouter);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+  app.use(function (req, res, next) {
+    next(createError(404));
+  });
 
-module.exports = app;
+  app.use(function (err, req, res, next) {
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    res.status(err.status || 500);
+    res.render('error');
+  });
+
+  return app;
+}
+
+module.exports = { createApp };
