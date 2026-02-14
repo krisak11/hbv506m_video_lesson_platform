@@ -9,7 +9,7 @@ module.exports = {
         const normalizedEmail = (email || "").trim().toLowerCase(); // Normalize email to prevent duplicates due to case or whitespace
         const exists = usersRepo.getUserByEmail(normalizedEmail) 
         if (exists) {
-            throw new Error("Email already registered")
+            throw new Error("Registration failed."); // Don't reveal that the email is already registered for better security.
         }
 
         // Ensure const is used for password_hash to prevent accidental reassignment.

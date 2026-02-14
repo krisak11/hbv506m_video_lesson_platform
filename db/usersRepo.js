@@ -13,7 +13,7 @@ function createUser({ email, password_hash, display_name}) {
     const normalizedEmail = (email || "").trim().toLowerCase(); // Normalize email to prevent duplicates due to case or whitespace
     const existing = getUserByEmail(normalizedEmail)
     if (existing) {
-        throw new Error("Email already registered")
+        throw new Error("Registration failed."); // Don't reveal that the email is already registered for better security.
     }
     const result = db.prepare(`
         INSERT INTO users (email, password_hash, display_name)
