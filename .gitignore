@@ -10,6 +10,7 @@ data/*.db-shm
 # Environment variables
 .env
 .env.local
+.env.example
 
 # Build artifacts and logs
 /build
