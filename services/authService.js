@@ -29,9 +29,18 @@ module.exports = {
         const user = usersRepo.getUserByEmail(normalizedEmail)
 
         if (!user) throw new Error("Invalid credentials")
+        
+        if (user.lock_until && Number(user.lock_until) > Date.now()) {
+            throw new Error ("Account temporarily locked. Try again later.");
+        }
 
         const match = await bcrypt.compare(password, user.password_hash)
-        if (!match) throw new Error ("Invalid credentials")
+        if (!match) {
+            usersRepo.recordFailedLogin(normalizedEmail) // Record the failed login attempt for brute-force protection
+            throw new Error("Invalid credentials")  
+        }
+
+        usersRepo.clearLoginFailures(user.id) // Clear failed login attempts on successful login
 
         return { 
             id: user.id, 
