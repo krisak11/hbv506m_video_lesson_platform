@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   profile_image_path TEXT,
 
   email_verified_at TEXT,        -- nullable
+  failed_login_attempts INTEGER NOT NULL DEFAULT 0 CHECK (failed_login_attempts >= 0), -- for simple brute-force protection
+  lock_until INTEGER, -- unix ms timestamp, nullable
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
