@@ -4,13 +4,21 @@
       <h1><%= title %></h1>
 
 
-      <!-- TEMP: logout and user print info-->
-      <h3>Logged in as: <b><%= user.display_name %></b></h3>
-      <form action="/auth/logout" method="POST" style="display:inline;">
-        <button type="submit" class="header-nav-btn">
-          Logout
-        </button>
-      </form>
+      <!-- TEMP: logout and user print info -->
+      <% if (user) { %>
+        <h3>Logged in as: <b><%= user.display_name %></b></h3>
+
+        <form action="/auth/logout" method="POST" style="display:inline;">
+          <button type="submit" class="header-nav-btn">Logout</button>
+        </form>
+      <% } else { %>
+        <p class="muted">
+          You are not logged in.
+          <a href="/auth/login">Login</a>
+          or
+          <a href="/auth/register">Register</a>
+        </p>
+      <% } %>
 
 
       <p>Welcome to <%= title %>. Browse the course catalog and start learning!</p>
@@ -18,8 +26,10 @@
     <section class="btn-actions">
       <a class="btn primary" href="/courses">Browse Courses</a>
 
-      <!-- TEMP: admin monitoring link (remove once auth is enforced) -->
-      <a class="btn secondary" href="/admin/monitor">Admin Dashboard</a>
+      <!-- TEMP: admin monitoring link (enforce roles later) -->
+      <% if (user) { %>
+        <a class="btn secondary" href="/admin/monitor">Admin Dashboard</a>
+      <% } %>
     </section>
   </div>
 </div>
