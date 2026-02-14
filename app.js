@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -62,24 +64,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
-  secret: 'tHIiQGMZ$p#8XbU2CLX4PaS!M5GCpU8jd',
+  secret: process.env.SESSION_SECRET || 'dev-only-secret-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false,
+    sameSite: 'lax', // 'lax' for general use, 'strict' for maximum protection, or 'none' if cross-site cookies are needed (requires secure: true)
+    secure: process.env.NODE_ENV === 'production', // Only send cookies over HTTPS in production
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
-app.use((req, res, next) => {
-  const publicPaths = ['/auth/login', '/auth/register']
 
-  if (publicPaths.includes(req.path)) {
-    return next();
-  }
-
-  return requireAuth(req, res, next);
-})
+// This should be after session middleware so that req.session is available, and before route handlers so that user info is available in all views.
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
@@ -91,9 +87,9 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 // protected routes
-app.use('/courses', coursesRouter);
-app.use('/lessons', lessonsRouter);
-app.use('/admin', adminRouter);
+app.use('/courses', requireAuth, coursesRouter);
+app.use('/lessons', requireAuth, lessonsRouter);
+app.use('/admin', requireAuth, adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

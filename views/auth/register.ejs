@@ -3,15 +3,35 @@
     <h1 class="app-title">Video Lesson Platform</h1>
     <h2 class="page-title">Register</h2>
 
+    <% if (errors && errors.length) { %>
+      <div class="error">
+        <% errors.forEach(function(e) { %>
+          <p class="error-message"><%= e %></p>
+        <% }) %>
+      </div>
+    <% } %>
+
     <form action="/auth/register" method="POST">
       <div class="form-group">
         <label for="display_name">Name</label>
-        <input id="display_name" type="display_name" name="display_name" required />
+        <input
+          id="display_name"
+          type="text"
+          name="display_name"
+          value="<%= form && form.display_name ? form.display_name : '' %>"
+          required
+        />
       </div>
 
       <div class="form-group">
         <label for="email">Email</label>
-        <input id="email" type="email" name="email" required />
+        <input
+          id="email"
+          type="email"
+          name="email"
+          value="<%= form && form.email ? form.email : '' %>"
+          required
+        />
       </div>
 
       <div class="form-group">
@@ -27,6 +47,5 @@
     <a href="/auth/login" class="btn-secondary">
       Login
     </a>
-
   </div>
 </div>
