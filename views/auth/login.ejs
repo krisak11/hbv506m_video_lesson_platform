@@ -3,10 +3,24 @@
     <h1 class="app-title">Video Lesson Platform</h1>
     <h2 class="page-title">Login</h2>
 
+    <% if (errors && errors.length) { %>
+      <div class="error">
+        <% errors.forEach(function(e) { %>
+          <p class="error-message"><%= e %></p>
+        <% }) %>
+      </div>
+    <% } %>
+
     <form action="/auth/login" method="POST">
       <div class="form-group">
         <label for="email">Email</label>
-        <input id="email" type="email" name="email" required />
+        <input
+          id="email"
+          type="email"
+          name="email"
+          value="<%= form && form.email ? form.email : '' %>"
+          required
+        />
       </div>
 
       <div class="form-group">
