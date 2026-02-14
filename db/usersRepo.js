@@ -1,7 +1,8 @@
 const db = require("./index");
 
 function getUserByEmail(email) {
-    return db.prepare('SELECT * FROM users WHERE email = ?').get(email)
+    const normalizedEmail = (email || "").trim().toLowerCase(); // Normalize email to prevent duplicates due to case or whitespace
+    return db.prepare('SELECT * FROM users WHERE email = ?').get(normalizedEmail)
 }
 
 function getUserById(id) {
@@ -9,10 +10,15 @@ function getUserById(id) {
 }
 
 function createUser({ email, password_hash, display_name}) {
+    const normalizedEmail = (email || "").trim().toLowerCase(); // Normalize email to prevent duplicates due to case or whitespace
+    const existing = getUserByEmail(normalizedEmail)
+    if (existing) {
+        throw new Error("Email already registered")
+    }
     const result = db.prepare(`
         INSERT INTO users (email, password_hash, display_name)
         VALUES (?, ?, ?)
-    `).run(email, password_hash, display_name || null)
+    `).run(normalizedEmail, password_hash, display_name || null)
     
     return {
         id: result.lastInsertRowid, // better-sqlite3 uses lastInsertRowid instead of lastID.
