@@ -73,6 +73,7 @@ app.use(session({
   }
 }));
 
+// This should be after session middleware so that req.session is available, and before route handlers so that user info is available in all views.
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   next();
