@@ -33,9 +33,8 @@ function createApp({ sessionStore } = {}) {
 
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'ejs');
-
-  app.set('trust proxy', true);
-
+  
+  app.set('trust proxy', 'loopback'); // trusts 127.0.0.1 / ::1 only
   // --------------------------
   // Logging
   // --------------------------
