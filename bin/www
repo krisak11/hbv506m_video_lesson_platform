@@ -52,8 +52,7 @@ async function main() {
   const server = http.createServer(app);
   server.listen(port, '0.0.0.0');
   server.on('error', onError);
-  server.on('listening', onListening);
-}
+  server.on('listening', () => onListening(server));}
 
 main().catch((e) => {
   console.error('Fatal startup error:', e);
@@ -86,9 +85,9 @@ function onError(error) {
   }
 }
 
-function onListening() {
-  const addr = this.address?.() || null;
-  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + (addr?.port ?? port);
+function onListening(server) {
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   debug('Listening on ' + bind);
   console.log('Listening on ' + bind);
 }
