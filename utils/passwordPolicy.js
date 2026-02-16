@@ -24,6 +24,10 @@ function passwordPolicy(req, res, next) {
     errors.push("Password is too weak. Please choose a stronger one."); 
   }
 
+  if (strength.feedback.suggestions?.length) {
+    errors.push(...strength.feedback.suggestions);
+  }
+
   if (errors.length) {
     req.passwordPolicyErrors = errors;
   }

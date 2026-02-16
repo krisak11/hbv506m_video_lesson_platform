@@ -6,7 +6,7 @@
     "start": "nodemon ./bin/www",
     "db:init": "node ./db/init.js",
     "db:smoke": "node db/smokeTest.js",
-    "db:seed": "node db/seed.js"
+    "db:seed": "node db/seed.js" 
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
