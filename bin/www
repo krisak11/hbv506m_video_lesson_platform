@@ -4,22 +4,22 @@ const http = require('http');
 const debug = require('debug')('video-lesson-platform:server');
 
 const { createClient } = require('redis');
-
-// ✅ Most common correct import for connect-redis in CJS:
 const { RedisStore } = require('connect-redis');
 
 const { createApp } = require('../app');
 
 const port = normalizePort(process.env.PORT || '3000');
 
+let redisClient; // so shutdown handlers can access it
+
 async function main() {
   // --------------------------
   // Connect Redis (optional in dev)
   // --------------------------
-  let sessionStore = undefined;
+  let sessionStore;
 
   const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-  const redisClient = createClient({ url: redisUrl });
+  redisClient = createClient({ url: redisUrl });
 
   redisClient.on('error', (err) => {
     console.error('Redis Client Error:', err);
@@ -38,11 +38,8 @@ async function main() {
     console.error(err);
 
     // Fail fast in production; allow fallback in dev if we want
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    } else {
-      console.warn('Continuing with MemoryStore for dev (NOT for production).');
-    }
+    if (process.env.NODE_ENV === 'production') process.exit(1);
+    console.warn('Continuing with MemoryStore for dev (NOT for production).');
   }
 
   // Build app with store (or without if Redis failed)
@@ -52,11 +49,28 @@ async function main() {
   const server = http.createServer(app);
   server.listen(port, '0.0.0.0');
   server.on('error', onError);
-  server.on('listening', () => onListening(server));}
+  server.on('listening', () => onListening(server));
+}
 
 main().catch((e) => {
   console.error('Fatal startup error:', e);
   process.exit(1);
+});
+
+process.on('SIGTERM', async () => {
+  try {
+    if (redisClient?.isOpen) await redisClient.quit();
+  } finally {
+    process.exit(0);
+  }
+});
+
+process.on('SIGINT', async () => {
+  try {
+    if (redisClient?.isOpen) await redisClient.quit();
+  } finally {
+    process.exit(0);
+  }
 });
 
 function normalizePort(val) {
@@ -75,11 +89,9 @@ function onError(error) {
     case 'EACCES':
       console.error(bind + ' requires elevated privileges');
       process.exit(1);
-      break;
     case 'EADDRINUSE':
       console.error(bind + ' is already in use');
       process.exit(1);
-      break;
     default:
       throw error;
   }
