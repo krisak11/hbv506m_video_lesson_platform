@@ -38,8 +38,12 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
       });
     }
     const user = await authService.register(req.body)
-    req.session.user = user
-    res.redirect('/')
+    // Prevent session fixation by regenerating the session on successful registration.
+    req.session.regenerate((err) => {
+      if (err) return res.status(500).send('Session error');
+      req.session.user = user;
+      res.redirect('/');
+    });
   } catch (err) {
     return res.status(400).render('auth/register', {
       title: 'Register',
@@ -53,11 +57,19 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
 /* POST login page. */
 router.post('/login', loginRateLimit, async (req, res) => {
   try {
-    const user = await authService.login(req.body)
+    const user = await authService.login(req.body);
 
-    req.session.user = user
+    // Prevent session fixation by regenerating the session on successful login.
+    req.session.regenerate((err) => {
+      if (err) {
+        return res.status(500).send('Session error');
+      }
 
-    res.redirect('/')
+      req.session.user = user;
+
+      res.redirect('/');
+    });
+
   } catch (err) {
     return res.status(400).render('auth/login', {
       title: 'Login',
