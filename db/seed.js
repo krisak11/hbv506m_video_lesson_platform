@@ -15,7 +15,7 @@ const insertUser = db.prepare(`
 `);
 
 insertUser.run('admin@example.com', 'admin', 'Admin User');
-insertUser.run('user@example.com', 'user', 'Normal User');
+insertUser.run('student@example.com', 'student', 'Student User');
 
 const adminUser = db.prepare(
   'SELECT id FROM users WHERE email = ?'
@@ -23,7 +23,7 @@ const adminUser = db.prepare(
 
 const normalUser = db.prepare(
   'SELECT id FROM users WHERE email = ?'
-).get('user@example.com');
+).get('student@example.com');
 
 // -------------------------
 // COURSES (using our repo)
