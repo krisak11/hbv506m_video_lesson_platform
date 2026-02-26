@@ -8,20 +8,28 @@ const lessonsRepo = require('../db/lessonsRepo');
 const auditLogsRepo = require('../db/auditLogsRepo');
 const { safeAuditLog } = require('../utils/auditLogger');
 
+const requireAuth = require('../utils/middleware/requireAuth');
+const coursePolicy = require('../utils/policies/coursePolicy');
+
 // GET /courses - list courses
 router.get('/', function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     const courses = coursesRepo.getAllCourses();
-    res.render('courses/index', { courses });
+    res.render('courses/index', { 
+      courses,
+      canCreate: coursePolicy.canCreate(req.user)
+    });
   } catch (err) {
     next(err);
   }
 });
 
 // GET /courses/new - show create form
-router.get('/new', function (req, res, next) {
+router.get('/new', requireAuth, function (req, res, next) {
   try {
+    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
+
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     res.render('courses/new', { form: { title: '', description: '' }, error: null });
   } catch (err) {
@@ -31,7 +39,7 @@ router.get('/new', function (req, res, next) {
 
 // GET /courses/:id/edit - show edit form
 // Must be before /:id route! 
-router.get('/:id/edit', function (req, res, next) {
+router.get('/:id/edit', requireAuth, function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
 
@@ -58,7 +66,7 @@ router.get('/:id/edit', function (req, res, next) {
 
 // GET /courses/:id - course detail page (with lessons). 
 // Must be after /new route!
-router.get('/:id', function (req, res, next) {
+router.get('/:id', requireAuth, function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
 
@@ -78,8 +86,10 @@ router.get('/:id', function (req, res, next) {
 });
 
 // POST /courses - create course
-router.post('/', function (req, res, next) {
+router.post('/', requireAuth, function (req, res, next) {
   try {
+    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
+
     const title = (req.body.title || '').trim();
     const description = (req.body.description || '').trim();
 
@@ -92,7 +102,7 @@ router.post('/', function (req, res, next) {
       });
     }
 
-    // Create nwe course with newID for logging purposes.
+    // Create new course with newID for logging purposes.
     const newId = coursesRepo.createCourse({ title, description });
 
     // Log audit event (non-blocking)
@@ -113,7 +123,7 @@ router.post('/', function (req, res, next) {
 
 
 // POST /courses/:id - update course
-router.post('/:id', function (req, res, next) {
+router.post('/:id', requireAuth, function (req, res, next) {
   try {
     const id = parseInt(req.params.id, 10);
     const existing = coursesRepo.getCourseById(id);
@@ -152,7 +162,7 @@ router.post('/:id', function (req, res, next) {
 });
 
 // POST /courses/:id/delete - delete course
-router.post('/:id/delete', function (req, res, next) {
+router.post('/:id/delete', requireAuth, function (req, res, next) {
   try {
     const id = parseInt(req.params.id, 10);
     const course = coursesRepo.getCourseById(id);

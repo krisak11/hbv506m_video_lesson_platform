@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
 
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT,            -- nullable for "no auth yet" stage
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'instructor', 'admin')),
 
   is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
 
