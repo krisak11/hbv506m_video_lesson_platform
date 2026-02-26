@@ -8,14 +8,18 @@ const lessonsRepo = require('../db/lessonsRepo');
 const auditLogsRepo = require('../db/auditLogsRepo');
 const { safeAuditLog } = require('../utils/auditLogger');
 
-const requireAuth = require('../utils//middleware/requireAuth');
+const requireAuth = require('../utils/middleware/requireAuth');
+const coursePolicy = require('../utils/policies/coursePolicy');
 
 // GET /courses - list courses
 router.get('/', function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     const courses = coursesRepo.getAllCourses();
-    res.render('courses/index', { courses });
+    res.render('courses/index', { 
+      courses,
+      canCreate: coursePolicy.canCreate(req.user)
+    });
   } catch (err) {
     next(err);
   }
@@ -24,6 +28,8 @@ router.get('/', function (req, res, next) {
 // GET /courses/new - show create form
 router.get('/new', requireAuth, function (req, res, next) {
   try {
+    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
+
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     res.render('courses/new', { form: { title: '', description: '' }, error: null });
   } catch (err) {
@@ -82,6 +88,8 @@ router.get('/:id', requireAuth, function (req, res, next) {
 // POST /courses - create course
 router.post('/', requireAuth, function (req, res, next) {
   try {
+    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
+
     const title = (req.body.title || '').trim();
     const description = (req.body.description || '').trim();
 
@@ -94,7 +102,7 @@ router.post('/', requireAuth, function (req, res, next) {
       });
     }
 
-    // Create nwe course with newID for logging purposes.
+    // Create new course with newID for logging purposes.
     const newId = coursesRepo.createCourse({ title, description });
 
     // Log audit event (non-blocking)
