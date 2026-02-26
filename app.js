@@ -88,7 +88,7 @@ function createApp({ sessionStore } = {}) {
   app.use('/users', usersRouter);
   app.use('/auth', authRouter);
 
-  app.use('/courses', requireAuth, coursesRouter);
+  app.use('/courses', coursesRouter);
   app.use('/lessons', requireAuth, lessonsRouter);
   app.use('/admin', requireAuth, adminRouter);
 
