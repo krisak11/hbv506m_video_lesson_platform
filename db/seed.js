@@ -9,13 +9,25 @@ console.log('Seeding database...');
 // -------------------------
 // USERS
 // -------------------------
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+// Choose test passwords (don’t reuse real passwords)
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'AdminPass!12345';
+const STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || 'StudentPass!12345';
+
 const insertUser = db.prepare(`
-  INSERT OR IGNORE INTO users (email, role, display_name)
-  VALUES (?, ?, ?)
+  INSERT OR IGNORE INTO users (email, password_hash, role, display_name)
+  VALUES (?, ?, ?, ?)
 `);
 
-insertUser.run('admin@example.com', 'admin', 'Admin User');
-insertUser.run('student@example.com', 'student', 'Student User');
+const adminHash = bcrypt.hashSync(ADMIN_PASSWORD, saltRounds);
+const studentHash = bcrypt.hashSync(STUDENT_PASSWORD, saltRounds);
+
+insertUser.run('admin@example.com', adminHash, 'admin', 'Admin User');
+insertUser.run('student@example.com', studentHash, 'student', 'Student User');
+
 
 const adminUser = db.prepare(
   'SELECT id FROM users WHERE email = ?'
