@@ -80,7 +80,8 @@ router.get('/:id',
 
     const course = req.resource.course; // no need to fetch again from db, loader already did that
 
-    const lessons = lessonsRepo.getLessonsByCourseId(course.id, { includeUnpublished: true });
+    const includeUnpublished = coursePolicy.canEdit(req.user, course); // owner/admin can see unpublished.
+    const lessons = lessonsRepo.getLessonsByCourseId(course.id, { includeUnpublished }); 
 
     res.render('courses/show', { course, lessons });
   } catch (err) {
