@@ -14,8 +14,9 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 // Choose test passwords (don’t reuse real passwords)
-const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'AdminPass!12345';
-const STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || 'StudentPass!12345';
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'admin';
+const STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || 'student';
+const INSTRUCTOR_PASSWORD = process.env.SEED_INSTRUCTOR_PASSWORD || 'instructor';
 
 const insertUser = db.prepare(`
   INSERT OR IGNORE INTO users (email, password_hash, role, display_name)
@@ -24,9 +25,11 @@ const insertUser = db.prepare(`
 
 const adminHash = bcrypt.hashSync(ADMIN_PASSWORD, saltRounds);
 const studentHash = bcrypt.hashSync(STUDENT_PASSWORD, saltRounds);
+const instructorHash = bcrypt.hashSync(INSTRUCTOR_PASSWORD, saltRounds);
 
 insertUser.run('admin@example.com', adminHash, 'admin', 'Admin User');
 insertUser.run('student@example.com', studentHash, 'student', 'Student User');
+insertUser.run('instructor@example.com', instructorHash, 'instructor', 'Instructor User');
 
 
 const adminUser = db.prepare(
@@ -37,6 +40,9 @@ const normalUser = db.prepare(
   'SELECT id FROM users WHERE email = ?'
 ).get('student@example.com');
 
+const instructorUser = db.prepare(
+  'SELECT id FROM users WHERE email = ?'
+).get('instructor@example.com');
 // -------------------------
 // COURSES (using our repo)
 // -------------------------
@@ -62,7 +68,7 @@ if (!course2Id) {
     title: 'Secure Backend Development',
     description: 'Building secure Node.js and Express applications.',
     is_published: 1,
-    created_by_user_id: adminUser.id,
+    created_by_user_id: instructorUser.id,
   });
 }
 

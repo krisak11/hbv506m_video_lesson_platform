@@ -1,5 +1,6 @@
 // utils/authz/authorize.js
 
+const adminPolicy = require('../policies/adminPolicy');
 const coursePolicy = require('../policies/coursePolicy');
 const lessonPolicy = require('../policies/lessonPolicy');
 
@@ -36,6 +37,10 @@ function authorize(ability) {
     let allowed = false;
 
     switch (ability) {
+      // Admin
+      case ABILITIES.ADMIN_PANEL:
+        allowed = adminPolicy.canAccess(user);
+        break;
       // Courses
       case ABILITIES.COURSE_VIEW:
         if (!course) return forbidden(req, res, ability);
@@ -60,6 +65,19 @@ function authorize(ability) {
         if (!course) return forbidden(req, res, ability);
         allowed = coursePolicy.canPublish(user, course);
         break;
+
+      case ABILITIES.COURSE_ENROLL: {
+        if (!course) return forbidden(res);
+        // enrollment is optional; if loader ran it will be there
+        allowed = coursePolicy.canEnroll(user, course, enrollment);
+        break;
+      }
+
+      case ABILITIES.COURSE_UNENROLL: {
+        if (!enrollment) return forbidden(res);
+        allowed = coursePolicy.canUnenroll(user, enrollment);
+        break;
+      }
 
       // Lessons (these likely need course + enrollment)
       case ABILITIES.LESSON_VIEW:

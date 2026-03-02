@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
 const session = require('express-session');
+const csurf = require('csurf'); // anti csrf middleware
+
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
@@ -17,6 +19,7 @@ let adminRouter = require('./routes/admin');
 
 const usersRepo = require('./db/usersRepo'); // for session hydration
 
+const adminPolicy = require('./utils/policies/adminPolicy');
 
 const requireAuth = require('./utils//middleware/requireAuth');
 let expressLayouts = require('express-ejs-layouts');
@@ -79,6 +82,10 @@ function createApp({ sessionStore } = {}) {
 
   app.use(session(sessionOptions));
 
+  // anti csrf middlware
+  const csrfProtection = csurf();
+  app.use(csrfProtection);
+
   // --------------------------
   // User session hydration middleware
   // Must be after session middleware and before any route that needs req.user
@@ -93,6 +100,7 @@ function createApp({ sessionStore } = {}) {
     if (!userId) {
       req.user = null;
       res.locals.user = null;
+      res.locals.canAdmin = false;
       return next();
     }
 
@@ -103,12 +111,20 @@ function createApp({ sessionStore } = {}) {
       req.session.destroy(() => {});
       req.user = null;
       res.locals.user = null;
+      res.locals.canAdmin = false;
       return res.redirect('/auth/login');
     }
 
     req.user = user;        // DB-fresh user row
     res.locals.user = user; // views
+    res.locals.canAdmin = adminPolicy.canAccess(user); // centralized admin capability flag
     return next();
+  });
+
+
+  app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
   });
 
   // --------------------------
@@ -124,8 +140,17 @@ function createApp({ sessionStore } = {}) {
   app.use('/lessons', requireAuth, lessonsRouter);
   app.use('/admin', requireAuth, adminRouter);
 
+
   app.use(function (req, res, next) {
     next(createError(404));
+  });
+
+  // CSRF error handler
+  app.use((err, req, res, next) => {
+    if (err.code === 'EBADCSRFTOKEN') {
+      return res.status(403).send('Invalid CSRF token');
+    }
+    next(err);
   });
 
   app.use(function (err, req, res, next) {
