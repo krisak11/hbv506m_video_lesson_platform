@@ -1,14 +1,34 @@
 <div>
   <a class="back-link" href="/courses">← Back to Courses</a>
+
   <header class="page-header">
     <div class="page-header-content">
-      <h1><%= course.title %></h1>
+      <div class="card-row" style="align-items:center; gap: 8px;">
+        <h1 style="margin:0;"><%= course.title %></h1>
+        <span class="badge"><%= course.is_published ? 'Published' : 'Draft' %></span>
+      </div>
+
       <p class="muted"><%= course.description %></p>
     </div>
 
     <div class="header-actions">
-      <a class="btn" href="/lessons/new?course_id=<%= course.id %>">+ New Lesson</a>
-      <a class="btn-secondary" href="/courses/<%= course.id %>/edit">Edit Course</a>
+      <% if (typeof canPublishCourse !== 'undefined' && canPublishCourse) { %>
+        <form method="POST"
+              action="/courses/<%= course.id %>/publish-toggle"
+              class="inline-form">
+          <button class="<%= course.is_published ? 'btn-danger' : 'btn' %>" type="submit">
+            <%= course.is_published ? 'Unpublish' : 'Publish' %>
+          </button>
+        </form>
+      <% } %>
+
+      <% if (canEditCourse) { %>
+        <a class="btn-secondary" href="/courses/<%= course.id %>/edit">Edit Course</a>
+      <% } %>
+
+      <% if (canCreateLesson) { %>
+        <a class="btn" href="/lessons/new?course_id=<%= course.id %>">+ New Lesson</a>
+      <% } %>
     </div>
   </header>
 
@@ -38,12 +58,15 @@
 
           <div class="card-actions">
             <a class="btn-secondary" href="/lessons/<%= lesson.id %>">View</a>
-            <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
 
-            <form method="POST" action="/lessons/<%= lesson.id %>/delete" class="inline-form"
-                  onsubmit="return confirm('Delete this lesson?');">
-              <button class="btn-danger" type="submit">Delete</button>
-            </form>
+            <% if (canEditCourse) { %>
+              <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
+
+              <form method="POST" action="/lessons/<%= lesson.id %>/delete" class="inline-form"
+                    onsubmit="return confirm('Delete this lesson?');">
+                <button class="btn-danger" type="submit">Delete</button>
+              </form>
+            <% } %>
           </div>
         </li>
       <% }) %>

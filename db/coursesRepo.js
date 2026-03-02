@@ -12,12 +12,27 @@ function getCourseById(id) {
   return db.prepare('SELECT * FROM courses WHERE id = ?').get(id);
 }
 
-function createCourse({ title, description }) {
+function getPublishedCourses() {
+  return db.prepare('SELECT * FROM courses WHERE is_published = 1 ORDER BY id DESC').all();
+}
+
+function setPublished(id, is_published) {
   const stmt = db.prepare(`
-    INSERT INTO courses (title, description)
-    VALUES (?, ?)
+    UPDATE courses
+    SET is_published = ?, updated_at = datetime('now')
+    WHERE id = ?
   `);
-  const result = stmt.run(title, description);
+  return stmt.run(is_published ? 1 : 0, id).changes;
+}
+
+function createCourse({ title, description, is_published = 0, price_cents = 0, created_by_user_id = null }) {
+  console.log('createCourse SQL about to run');
+  const stmt = db.prepare(`
+    INSERT INTO courses (title, description, is_published, price_cents, created_by_user_id)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  const result = stmt.run(title, description, is_published, price_cents, created_by_user_id);
   return result.lastInsertRowid;
 }
 
@@ -37,6 +52,8 @@ function deleteCourse(id) {
 module.exports = {
   getAllCourses,
   getCourseById,
+  getPublishedCourses,
+  setPublished,
   createCourse,
   updateCourse,
   deleteCourse,

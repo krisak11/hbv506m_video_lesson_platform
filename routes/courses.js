@@ -3,19 +3,30 @@
 var express = require('express');
 var router = express.Router();
 
+// Authorization
+const { authorize } = require('../utils/authz/authorize');
+const { loadCourse } = require('../utils/authz/loaders');
+const ABILITIES = require('../utils/authz/abilities');
+
+// Repositories
 const coursesRepo = require('../db/coursesRepo');
 const lessonsRepo = require('../db/lessonsRepo');
 const auditLogsRepo = require('../db/auditLogsRepo');
+
+// Utils
 const { safeAuditLog } = require('../utils/auditLogger');
 
-const requireAuth = require('../utils/middleware/requireAuth');
 const coursePolicy = require('../utils/policies/coursePolicy');
+const lessonPolicy = require('../utils/policies/lessonPolicy');
 
 // GET /courses - list courses
 router.get('/', function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
-    const courses = coursesRepo.getAllCourses();
+
+    // Admins/Instructors can view unpublished courses. Students only published courses.
+    const canManage = req.user.role === 'admin' || req.user.role === 'instructor';
+    const courses = canManage ? coursesRepo.getAllCourses() : coursesRepo.getPublishedCourses();
     res.render('courses/index', { 
       courses,
       canCreate: coursePolicy.canCreate(req.user)
@@ -26,10 +37,10 @@ router.get('/', function (req, res, next) {
 });
 
 // GET /courses/new - show create form
-router.get('/new', requireAuth, function (req, res, next) {
+router.get('/new', 
+  authorize(ABILITIES.COURSE_CREATE), // only users with course:create can access this route
+  function (req, res, next) {
   try {
-    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
-
     res.locals.pageCss = '/stylesheets/pages/courses.css';
     res.render('courses/new', { form: { title: '', description: '' }, error: null });
   } catch (err) {
@@ -39,16 +50,14 @@ router.get('/new', requireAuth, function (req, res, next) {
 
 // GET /courses/:id/edit - show edit form
 // Must be before /:id route! 
-router.get('/:id/edit', requireAuth, function (req, res, next) {
+router.get('/:id/edit', 
+  loadCourse('id'), // loads course into req.resource.course or 404 if not found
+  authorize(ABILITIES.COURSE_EDIT), // only users with course:edit on this course can access
+  function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
 
-    const id = parseInt(req.params.id, 10);
-    const course = coursesRepo.getCourseById(id);
-
-    if (!course) {
-      return res.status(404).send('Course not found');
-    }
+    const course = req.resource.course; // no need to fetch again from db, loader already did that
 
     res.render('courses/edit', {
       course,
@@ -66,30 +75,34 @@ router.get('/:id/edit', requireAuth, function (req, res, next) {
 
 // GET /courses/:id - course detail page (with lessons). 
 // Must be after /new route!
-router.get('/:id', requireAuth, function (req, res, next) {
+router.get('/:id', 
+  loadCourse('id'), // loads course into req.resource.course or 404 if not found
+  authorize(ABILITIES.COURSE_VIEW), // only users with course:view on this course can access  
+  function (req, res, next) {
   try {
     res.locals.pageCss = '/stylesheets/pages/courses.css';
 
-    const id = parseInt(req.params.id, 10);
-    const course = coursesRepo.getCourseById(id);
+    const course = req.resource.course; // no need to fetch again from db, loader already did that
 
-    if (!course) {
-      return res.status(404).send('Course not found');
-    }
+    const includeUnpublished = coursePolicy.canEdit(req.user, course); // owner/admin can see unpublished.
+    const lessons = lessonsRepo.getLessonsByCourseId(course.id, { includeUnpublished }); 
 
-    const lessons = lessonsRepo.getLessonsByCourseId(id, { includeUnpublished: true });
+    const canEditCourse = coursePolicy.canEdit(req.user, course);
+    const canPublishCourse = coursePolicy.canPublish(req.user, course);
+    const canCreateLesson = canEditCourse || lessonPolicy.canCreate(req.user, course)
+    
+    res.render('courses/show', { course, lessons, canEditCourse, canPublishCourse, canCreateLesson });
 
-    res.render('courses/show', { course, lessons });
   } catch (err) {
     next(err);
   }
 });
 
 // POST /courses - create course
-router.post('/', requireAuth, function (req, res, next) {
+router.post('/', 
+  authorize(ABILITIES.COURSE_CREATE), // only users with course:create can access this route
+  function (req, res, next) {
   try {
-    if (!coursePolicy.canCreate(req.user)) return res.status(403).send('Forbidden');
-
     const title = (req.body.title || '').trim();
     const description = (req.body.description || '').trim();
 
@@ -103,7 +116,7 @@ router.post('/', requireAuth, function (req, res, next) {
     }
 
     // Create new course with newID for logging purposes.
-    const newId = coursesRepo.createCourse({ title, description });
+    const newId = coursesRepo.createCourse({ title, description, created_by_user_id: req.user.id, });
 
     // Log audit event (non-blocking)
     safeAuditLog(req,{
@@ -123,14 +136,12 @@ router.post('/', requireAuth, function (req, res, next) {
 
 
 // POST /courses/:id - update course
-router.post('/:id', requireAuth, function (req, res, next) {
+router.post('/:id', 
+  loadCourse('id'), // loads course into req.resource.course or 404 if not found
+  authorize(ABILITIES.COURSE_EDIT), // only users with course:edit on this course can access
+  function (req, res, next) {
   try {
-    const id = parseInt(req.params.id, 10);
-    const existing = coursesRepo.getCourseById(id);
-
-    if (!existing) {
-      return res.status(404).send('Course not found');
-    }
+    const course = req.resource.course; // no need to fetch again from db, loader already did that
 
     const title = (req.body.title || '').trim();
     const description = (req.body.description || '').trim();
@@ -138,13 +149,13 @@ router.post('/:id', requireAuth, function (req, res, next) {
     if (!title || !description) {
       res.locals.pageCss = '/stylesheets/pages/courses.css';
       return res.status(400).render('courses/edit', {
-        course: existing,
+        course: course,
         form: { title, description },
         error: 'Title and description are required.',
       });
     }
 
-    coursesRepo.updateCourse(id, { title, description });
+    coursesRepo.updateCourse(course.id, { title, description });
     
     // Log audit event (non-blocking)
     safeAuditLog(req, { 
@@ -152,36 +163,60 @@ router.post('/:id', requireAuth, function (req, res, next) {
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
         message: `Course updated: ${title}`,
-        metadata: { course_id: id }
+        metadata: { course_id: course.id }
     });
     
-    res.redirect(`/courses/${id}`);
+    res.redirect(`/courses/${course.id}`);
   } catch (err) {
     next(err);
   }
 });
 
-// POST /courses/:id/delete - delete course
-router.post('/:id/delete', requireAuth, function (req, res, next) {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const course = coursesRepo.getCourseById(id);
 
-    if (!course) {
-      return res.status(404).send('Course not found');
+// POST /courses/:id/publish-toggle - publish/unpublish
+router.post(
+  '/:id/publish-toggle',
+  loadCourse('id'),
+  authorize(ABILITIES.COURSE_PUBLISH),
+  (req, res, next) => {
+    try {
+      const course = req.resource.course;
+      const nextVal = course.is_published ? 0 : 1;
+
+      coursesRepo.setPublished(course.id, nextVal);
+
+      safeAuditLog(req, {
+        event_type: 'course_publish_toggled',
+        severity: 'info',
+        actor_user_id: req.user.id,
+        message: `Course publish toggled to ${nextVal} for: ${course.title}`,
+        metadata: { course_id: course.id, is_published: nextVal },
+      });
+
+      res.redirect(`/courses/${course.id}`);
+    } catch (err) {
+      next(err);
     }
+  }
+);
 
-    const title = course.title;
+// POST /courses/:id/delete - delete course
+router.post('/:id/delete', 
+  loadCourse('id'), // loads course into req.resource.course or 404 if not found
+  authorize(ABILITIES.COURSE_DELETE), // only users with course:delete on this course can access
+  function (req, res, next) {
+  try {
+    const course = req.resource.course; // no need to fetch again from db, loader already did that
 
-    coursesRepo.deleteCourse(id);
+    coursesRepo.deleteCourse(course.id);
 
     // Log audit event (non-blocking)
     safeAuditLog(req, {
         event_type: 'course_deleted',
         severity: 'warn',
         actor_user_id: req.user?.id ?? null,
-        message: `Course deleted: ${title}`,
-        metadata: { course_id: id }
+        message: `Course deleted: ${course.title}`,
+        metadata: { course_id: course.id }
     });
 
     res.redirect('/courses');
