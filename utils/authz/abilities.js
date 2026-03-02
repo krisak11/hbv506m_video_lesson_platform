@@ -12,6 +12,7 @@ module.exports = {
   LESSON_CREATE: 'lesson:create',
   LESSON_EDIT: 'lesson:edit',
   LESSON_DELETE: 'lesson:delete',
+  LESSON_LIST: 'lesson:list',
 
   // admin
   ADMIN_PANEL: 'admin:panel',
