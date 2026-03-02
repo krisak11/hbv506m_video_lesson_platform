@@ -61,6 +61,16 @@ function clearLoginFailures(userId) {
   `).run(userId);
 }
 
+function updateUser(id, { display_name, email, role }) {
+  const stmt = db.prepare(`
+    UPDATE users
+    SET display_name = ?, email = ?, role = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `);
+
+  return stmt.run(display_name, email, role, id).changes;
+}
+
 module.exports = {
     getUserByEmail,
     getUserById,
@@ -68,5 +78,6 @@ module.exports = {
     updatePassword,
     deleteUser,
     recordFailedLogin,
-    clearLoginFailures
+    clearLoginFailures,
+    updateUser
 }

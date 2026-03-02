@@ -3,6 +3,7 @@
 const adminPolicy = require('../policies/adminPolicy');
 const coursePolicy = require('../policies/coursePolicy');
 const lessonPolicy = require('../policies/lessonPolicy');
+const userPolicy = require('../policies/userPolicy');
 
 const { safeAuditLog } = require('../auditLogger');
 
@@ -113,6 +114,19 @@ function authorize(ability) {
       
       case ABILITIES.ADMIN_PANEL:
         allowed = user?.role === 'admin';
+        break;
+
+      // Users
+      case ABILITIES.USER_VIEW:
+        allowed = userPolicy.canView(user, req.resource?.user);
+        break;
+
+      case ABILITIES.USER_EDIT:
+        allowed = userPolicy.canEdit(user, req.resource?.user);
+        break;
+
+      case ABILITIES.USER_LIST:
+        allowed = userPolicy.canList(user);
         break;
 
       default:
