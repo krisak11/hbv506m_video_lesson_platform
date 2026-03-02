@@ -53,8 +53,54 @@ function loadEnrollmentFromCourse() {
   };
 }
 
+function loadCourseFromQuery(queryKey = 'course_id') {
+  return function (req, res, next) {
+    const id = parseInt(req.query[queryKey], 10);
+    if (!Number.isFinite(id)) return res.status(400).send(`Missing/invalid query param: ${queryKey}`);
+
+    const course = coursesRepo.getCourseById(id);
+    if (!course) return res.status(404).send('Course not found');
+
+    req.resource = req.resource || {};
+    req.resource.course = course;
+    next();
+  };
+}
+
+function loadCourseFromBody(bodyKey = 'course_id') {
+  return function (req, res, next) {
+    const id = parseInt(req.body[bodyKey], 10);
+    if (!Number.isFinite(id)) return res.status(400).send(`Missing/invalid body field: ${bodyKey}`);
+
+    const course = coursesRepo.getCourseById(id);
+    if (!course) return res.status(404).send('Course not found');
+
+    req.resource = req.resource || {};
+    req.resource.course = course;
+    next();
+  };
+}
+
+// Helper: after loadLesson('id'), load the course for that lesson
+function loadCourseFromLessonResource() {
+  return function (req, res, next) {
+    const lesson = req.resource?.lesson;
+    if (!lesson) return res.status(500).send('Lesson must be loaded before course');
+
+    const course = coursesRepo.getCourseById(lesson.course_id);
+    if (!course) return res.status(404).send('Course not found');
+
+    req.resource = req.resource || {};
+    req.resource.course = course;
+    next();
+  };
+}
+
 module.exports = {
   loadCourse,
   loadLesson,
   loadEnrollmentFromCourse,
+  loadCourseFromQuery,
+  loadCourseFromBody,
+  loadCourseFromLessonResource,
 };
