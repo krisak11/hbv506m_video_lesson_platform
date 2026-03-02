@@ -18,6 +18,7 @@ const lessonsRepo = require('../db/lessonsRepo');
 // Utils
 const { safeAuditLog } = require('../utils/auditLogger');
 const coursePolicy = require('../utils/policies/coursePolicy'); // for includeUnpublished decision
+const lessonPolicy = require('../utils/policies/lessonPolicy');
 
 // --------------------------------------
 // GET /lessons?course_id=1  (list lessons for a course)
@@ -138,7 +139,8 @@ router.get(
       res.locals.pageCss = '/stylesheets/pages/courses.css';
       const lesson = req.resource.lesson;
       const course = req.resource.course;
-      res.render('lessons/show', { lesson, course });
+      const canEditLesson = lessonPolicy.canEdit(req.user, course, lesson);
+      res.render('lessons/show', { lesson, course, canEditLesson });
     } catch (err) {
       next(err);
     }

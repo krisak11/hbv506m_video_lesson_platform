@@ -8,9 +8,11 @@
       </p>
     </div>
 
-    <div class="header-actions">
-      <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
-    </div>
+    <% if (canEditLesson) { %>
+      <div class="header-actions">
+        <a class="btn-secondary" href="/lessons/<%= lesson.id %>/edit">Edit</a>
+      </div>
+    <% } %>
   </header>
 
   <% if (lesson.description) { %>
