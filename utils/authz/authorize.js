@@ -92,7 +92,10 @@ function authorize(ability) {
               (user.role === 'instructor' && course.created_by_user_id === user.id) ||
               (course.is_published && enrollment?.status === 'active')));
         break;
-        
+      
+      case ABILITIES.ADMIN_PANEL:
+        allowed = user?.role === 'admin';
+        break;
 
       default:
         allowed = false;
