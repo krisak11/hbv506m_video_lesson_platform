@@ -1,0 +1,19 @@
+<h1><%= adminView ? "Admin Edit User" : "My Profile" %></h1>
+
+<form method="POST">
+  <label>Email</label>
+  <input type="email" name="email" value="<%= user.email %>" required />
+
+  <label>Display Name</label>
+  <input type="text" name="display_name" value="<%= user.display_name %>" required />
+
+  <% if (adminView) { %>
+    <label>Role</label>
+    <select name="role">
+      <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+      <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+    </select>
+  <% } %>
+
+  <button type="submit">Save</button>
+</form>
