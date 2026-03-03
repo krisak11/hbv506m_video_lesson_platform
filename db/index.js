@@ -1,7 +1,7 @@
+const result = require('dotenv').config({ path: '/etc/video-lesson-platform/env'});
 const Database = require('better-sqlite3'); // SQLite library, synchronous and fast.
 const path = require('path'); // For handling file paths
 const fs = require('fs'); // File system module
-const result = require('dotenv').config({ path: '/etc/video-lesson-platform/env'});
 if (result.error) {
   console.error("Dotenv Error:", result.error);
 }
