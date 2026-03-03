@@ -18,7 +18,8 @@ module.exports = {
         const user = usersRepo.createUser({ email: normalizedEmail, password_hash, display_name })
 
         return { 
-            id: user.id, 
+            id: user.id,
+            email: user.email, 
             display_name: user.display_name,
             role: user.role 
         }
@@ -48,6 +49,7 @@ module.exports = {
 
         return { 
             id: user.id, 
+            email: user.email,
             display_name: user.display_name,
             role: user.role 
         }

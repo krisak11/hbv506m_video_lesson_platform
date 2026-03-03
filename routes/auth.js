@@ -39,14 +39,14 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
       });
     }
     const user = await authService.register(req.body)
-
+    
     safeAuditLog(req, {
       event_type: 'register_success',
       severity: 'info',
       actor_user_id: user.id,
       message: `New user registered: ${user.display_name}`,
     });
-
+    
     // Prevent session fixation by regenerating the session on successful registration.
     req.session.regenerate((err) => {
       if (err) return res.status(500).send('Session error');
@@ -54,11 +54,12 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
       res.redirect('/');
     });
   } catch (err) {
+    const registerAttemptEmail = req.body.email;
     safeAuditLog(req, {
       event_type: 'register_failure',
       severity: 'warn',
       actor_user_id: null,
-      message: `Registration failed`,
+      message: `Registration for ${registerAttemptEmail} failed`,
     });
 
     return res.status(400).render('auth/register', {
@@ -74,14 +75,14 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
 router.post('/login', loginRateLimit, async (req, res) => {
   try {
     const user = await authService.login(req.body);
-
+    
     safeAuditLog(req, {
       event_type: 'login_success',
       severity: 'info',
       actor_user_id: user.id,
       message: `Successful login: ${user.display_name}`,
     });
-
+    
     // Prevent session fixation by regenerating the session on successful login.
     req.session.regenerate((err) => {
       if (err) {
@@ -90,13 +91,14 @@ router.post('/login', loginRateLimit, async (req, res) => {
       req.session.userId = user.id;
       res.redirect('/');
     });
-
+    
   } catch (err) {
+    const loginAttemptEmail = req.body.email;
     safeAuditLog(req, {
       event_type: err.message.includes('locked') ? 'account_locked' : 'login_failure',
       severity: 'warn',
       actor_user_id: null,
-      message: `Login attempt failed: ${err.message}`,
+      message: `Login attempt for ${loginAttemptEmail} failed: ${err.message}`,
     });
 
     return res.status(400).render('auth/login', {
