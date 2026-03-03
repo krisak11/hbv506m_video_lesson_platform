@@ -84,5 +84,25 @@ router.post('/:id/deactivate', loadUser('id'), authorize(ABILITIES.USER_DEACTIVA
   }
 });
 
+router.post('/:id/activate', loadUser('id'), authorize(ABILITIES.USER_ACTIVATE), (req, res, next) => {
+  try {
+    const userToActivate = req.resource.user;
+
+    usersRepo.updateUser(userToActivate.id, { is_active: false });
+
+    safeAuditLog(req, {
+      event_type: 'admin_activate_user',
+      severity: 'warn',
+      actor_user_id: req.user.id,
+      message: `User ${userToActivate.id} activated`,
+      metadata: { userId: userToActivate.id },
+    });
+
+    res.redirect(`/users/${userToActivate.id}`);
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 module.exports = router;

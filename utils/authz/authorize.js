@@ -131,6 +131,11 @@ function authorize(ability) {
         if (!req.resource?.user) return forbidden(req, res, ability);
         allowed = userPolicy.canDeactivate(user, req.resource.user);
         break;
+      
+      case ABILITIES.USER_ACTIVATE:
+        if (!req.resource?.user) return forbidden(req, res, ability);
+        allowed = userPolicy.canActivate(user, req.resource.user);
+        break;
 
       default:
         allowed = false;
