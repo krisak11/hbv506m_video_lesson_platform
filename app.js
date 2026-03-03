@@ -6,6 +6,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fs = require('fs');
+const crypto = require('crypto');
 const session = require('express-session');
 const csurf = require('csurf'); // anti csrf middleware
 
@@ -59,6 +60,22 @@ function createApp({ sessionStore } = {}) {
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
+
+  // requesting audit context for tracing
+  app.use((req, res, next) => {
+    const startedAtMs = Date.now();
+    req.audit = {
+      request_id: crypto.randomUUID(),
+      started_at_ms: startedAtMs,
+      duration_ms: null,
+    };
+
+    res.on('finish', () => {
+      req.audit.duration_ms = Date.now() - startedAtMs;
+    });
+
+    next();
+  });
 
   // --------------------------
   // Session middleware (store injected)

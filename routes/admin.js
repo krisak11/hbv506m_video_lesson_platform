@@ -6,11 +6,11 @@ const fs = require('fs');
 const path = require('path');
 
 const auditLogsRepo = require('../db/auditLogsRepo');
-const { safeAuditLog } = require('../utils/auditLogger');
+const { safeAuditLog, userTarget } = require('../utils/auditLogger');
+const { presentAuditLogs } = require('../utils/audit/logPresenter');
 const { authorize } = require('../utils/authz/authorize');
 const ABILITIES = require('../utils/authz/abilities');
 const usersRepo = require('../db/usersRepo');
-const { loadUser } = require('../utils/authz/loaders');
 
 function tailFile(filePath, maxLines = 100) {
   if (!fs.existsSync(filePath)) return null;
@@ -36,7 +36,8 @@ router.get(
     // Latest audit logs from DB
     let latestLogs = [];
     try {
-      latestLogs = auditLogsRepo.getLatestLogs({ limit: 50 });
+      const rawLogs = auditLogsRepo.getLatestLogs({ limit: 50 });
+      latestLogs = presentAuditLogs(rawLogs);
     } catch (e) {
       // If DB logging isn't used yet, don't crash the page
       latestLogs = [];
@@ -65,10 +66,41 @@ router.get(
 router.get('/user-search', authorize(ABILITIES.USER_LIST), function (req, res, next) {
   try {
     const userId = parseInt(req.query.id, 10);
-    if (!Number.isFinite(userId)) return res.status(400).send('Invalid user ID');
+    if (!Number.isFinite(userId)) {
+      safeAuditLog(req, {
+        event_type: 'admin_user_search',
+        severity: 'warn',
+        actor_user_id: req.user.id,
+        message: 'Admin user search failed: invalid user id',
+        metadata: {
+          outcome: { success: false, failure_reason: 'validation_error' },
+        },
+      });
+      return res.status(400).send('Invalid user ID');
+    }
 
     const userFound = usersRepo.getUserById(userId);
-    if (!userFound) return res.status(404).send('User not found');
+    if (!userFound) {
+      safeAuditLog(req, {
+        event_type: 'admin_user_search',
+        severity: 'warn',
+        actor_user_id: req.user.id,
+        message: `Admin user search failed: user ${userId} not found`,
+        metadata: {
+          userId,
+          outcome: { success: false, failure_reason: 'not_found' },
+        },
+      });
+      return res.status(404).send('User not found');
+    }
+
+    safeAuditLog(req, {
+      event_type: 'admin_user_search',
+      severity: 'info',
+      actor_user_id: req.user.id,
+      message: `Admin user search redirected to user ${userId}`,
+      metadata: userTarget(userFound),
+    });
 
     res.redirect(`/users/${userId}`);
   } catch (err) {

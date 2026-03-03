@@ -37,6 +37,17 @@
   font-weight: 600;
 }
 
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  min-width: 170px;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+  white-space: nowrap;
+  min-width: 100px;
+}
+
 /* ===== Severity badges ===== */
 
 .badge-info {

@@ -4,7 +4,7 @@ const authService = require('../services/authService');
 const passwordPolicy = require('../utils/passwordPolicy');
 const loginRateLimit = require('../utils/loginRateLimit');
 const registerRateLimit = require('../utils/registerRateLimit');
-const { safeAuditLog } = require('../utils/auditLogger');
+const { safeAuditLog, normalizeEmail, authTarget } = require('../utils/auditLogger');
 
 /* GET register page. */
 router.get('/register', function(req, res, next) {
@@ -29,8 +29,21 @@ router.get('/login', function(req, res, next) {
 /* POST register page. */
 // Ensure passwordPolicy and registerRateLimit middleware are applied to the registration route to enforce security measures.
 router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => {
+  const registerAttemptEmail = normalizeEmail(req.body.email);
+
   try {
     if (req.passwordPolicyErrors?.length) {
+      safeAuditLog(req, {
+        event_type: 'register_failure',
+        severity: 'warn',
+        actor_user_id: null,
+        message: 'Registration failed: password policy validation',
+        metadata: {
+          ...authTarget(registerAttemptEmail),
+          outcome: { success: false, failure_reason: 'validation_error' },
+        },
+      });
+
       return res.status(400).render('auth/register', {
         title: 'Register',
         pageCss: '/stylesheets/pages/register.css',
@@ -44,7 +57,8 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
       event_type: 'register_success',
       severity: 'info',
       actor_user_id: user.id,
-      message: `New user registered: ${user.email}`,
+      message: 'New user registered',
+      metadata: authTarget(registerAttemptEmail, user.id),
     });
     
     // Prevent session fixation by regenerating the session on successful registration.
@@ -54,12 +68,15 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
       res.redirect('/');
     });
   } catch (err) {
-    const registerAttemptEmail = req.body.email;
     safeAuditLog(req, {
       event_type: 'register_failure',
       severity: 'warn',
       actor_user_id: null,
-      message: `Registration for ${registerAttemptEmail} failed`,
+      message: 'Registration failed',
+      metadata: {
+        ...authTarget(registerAttemptEmail),
+        outcome: { success: false, failure_reason: 'register_failed' },
+      },
     });
 
     return res.status(400).render('auth/register', {
@@ -73,6 +90,8 @@ router.post('/register', registerRateLimit, passwordPolicy, async (req, res) => 
 
 /* POST login page. */
 router.post('/login', loginRateLimit, async (req, res) => {
+  const loginAttemptEmail = normalizeEmail(req.body.email);
+
   try {
     const user = await authService.login(req.body);
     
@@ -80,7 +99,8 @@ router.post('/login', loginRateLimit, async (req, res) => {
       event_type: 'login_success',
       severity: 'info',
       actor_user_id: user.id,
-      message: `Successful login: ${user.email}`,
+      message: 'Successful login',
+      metadata: authTarget(loginAttemptEmail, user.id),
     });
     
     // Prevent session fixation by regenerating the session on successful login.
@@ -93,12 +113,16 @@ router.post('/login', loginRateLimit, async (req, res) => {
     });
     
   } catch (err) {
-    const loginAttemptEmail = req.body.email;
+    const isLocked = err.message.includes('locked');
     safeAuditLog(req, {
-      event_type: err.message.includes('locked') ? 'account_locked' : 'login_failure',
+      event_type: isLocked ? 'account_locked' : 'login_failure',
       severity: 'warn',
       actor_user_id: null,
-      message: `Login attempt for ${loginAttemptEmail} failed: ${err.message}`,
+      message: 'Login attempt failed',
+      metadata: {
+        ...authTarget(loginAttemptEmail),
+        outcome: { success: false, failure_reason: isLocked ? 'account_locked' : 'invalid_credentials' },
+      },
     });
 
     return res.status(400).render('auth/login', {

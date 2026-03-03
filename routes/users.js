@@ -4,7 +4,7 @@ const { authorize } = require('../utils/authz/authorize');
 const ABILITIES = require('../utils/authz/abilities');
 const { loadUser } = require('../utils/authz/loaders');
 const usersRepo = require('../db/usersRepo');
-const { safeAuditLog } = require('../utils/auditLogger');
+const { safeAuditLog, getChangedFields, userTarget } = require('../utils/auditLogger');
 
 // GET profile (self or admin view)
 router.get(
@@ -53,8 +53,11 @@ router.post(
         event_type: req.user.id === user.id ? 'user_update_profile' : 'admin_update_user',
         severity: 'info',
         actor_user_id: req.user.id,
-        message: `Profile updated`,
-        metadata: { updatedFields: Object.keys(req.body), userId: user.id }
+        message: `User profile updated`,
+        metadata: {
+          ...userTarget(user),
+          updatedFields: getChangedFields(req.body),
+        },
       });
 
       res.redirect(`/users/${user.id}`);
@@ -74,8 +77,8 @@ router.post('/:id/deactivate', loadUser('id'), authorize(ABILITIES.USER_DEACTIVA
       event_type: 'admin_deactivate_user',
       severity: 'warn',
       actor_user_id: req.user.id,
-      message: `User ${userToDeactivate.id} deactivated`,
-      metadata: { userId: userToDeactivate.id },
+      message: `User deactivated`,
+      metadata: userTarget(userToDeactivate),
     });
 
     res.redirect(`/users/${userToDeactivate.id}`);
@@ -94,8 +97,8 @@ router.post('/:id/activate', loadUser('id'), authorize(ABILITIES.USER_ACTIVATE),
       event_type: 'admin_activate_user',
       severity: 'warn',
       actor_user_id: req.user.id,
-      message: `User ${userToActivate.id} activated`,
-      metadata: { userId: userToActivate.id },
+      message: `User activated`,
+      metadata: userTarget(userToActivate),
     });
 
     res.redirect(`/users/${userToActivate.id}`);

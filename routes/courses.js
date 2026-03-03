@@ -12,11 +12,10 @@ const ABILITIES = require('../utils/authz/abilities');
 // Repositories
 const coursesRepo = require('../db/coursesRepo');
 const lessonsRepo = require('../db/lessonsRepo');
-const auditLogsRepo = require('../db/auditLogsRepo');
 const enrollmentsRepo = require('../db/enrollmentsRepo');
 
 // Utils
-const { safeAuditLog } = require('../utils/auditLogger');
+const { safeAuditLog, getChangedFields } = require('../utils/auditLogger');
 
 const coursePolicy = require('../utils/policies/coursePolicy');
 const lessonPolicy = require('../utils/policies/lessonPolicy');
@@ -114,6 +113,16 @@ router.post('/',
 
     // Very basic validation for now
     if (!title || !description) {
+      safeAuditLog(req, {
+        event_type: 'course_create_failed',
+        severity: 'warn',
+        actor_user_id: req.user?.id ?? null,
+        message: 'Course create failed',
+        metadata: {
+          outcome: { success: false, failure_reason: 'validation_error' },
+        },
+      });
+
       res.locals.pageCss = '/stylesheets/pages/courses.css';
       return res.status(400).render('courses/new', {
         form: { title, description },
@@ -128,9 +137,11 @@ router.post('/',
     safeAuditLog(req,{
         event_type: 'course_created',
         severity: 'info',
-        actor_user_id: req.user?.id ?? null, // no auth yet
-        message: `Course created: ${title}`,
-        metadata: { course_id: newId }
+        actor_user_id: req.user?.id ?? null,
+        message: 'Course created',
+        metadata: {
+          domain: { course_id: newId, course_title: title },
+        },
     });
 
     res.redirect('/courses');
@@ -153,6 +164,17 @@ router.post('/:id',
     const description = (req.body.description || '').trim();
 
     if (!title || !description) {
+      safeAuditLog(req, {
+        event_type: 'course_update_failed',
+        severity: 'warn',
+        actor_user_id: req.user?.id ?? null,
+        message: 'Course update failed',
+        metadata: {
+          domain: { course_id: course.id, course_title: course.title ?? null },
+          outcome: { success: false, failure_reason: 'validation_error' },
+        },
+      });
+
       res.locals.pageCss = '/stylesheets/pages/courses.css';
       return res.status(400).render('courses/edit', {
         course: course,
@@ -168,8 +190,13 @@ router.post('/:id',
         event_type: 'course_updated',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        message: `Course updated: ${title}`,
-        metadata: { course_id: course.id }
+        message: 'Course updated',
+        metadata: {
+          domain: { course_id: course.id, course_title: title || course.title || null },
+          details: {
+            updatedFields: getChangedFields(req.body),
+          },
+        },
     });
     
     res.redirect(`/courses/${course.id}`);
@@ -195,8 +222,11 @@ router.post(
         event_type: 'course_publish_toggled',
         severity: 'info',
         actor_user_id: req.user.id,
-        message: `Course publish toggled to ${nextVal} for: ${course.title}`,
-        metadata: { course_id: course.id, is_published: nextVal },
+        message: `Course publish toggled to ${nextVal}`,
+        metadata: {
+          domain: { course_id: course.id, course_title: course.title ?? null },
+          details: { is_published: nextVal },
+        },
       });
 
       res.redirect(`/courses/${course.id}`);
@@ -221,8 +251,10 @@ router.post('/:id/delete',
         event_type: 'course_deleted',
         severity: 'warn',
         actor_user_id: req.user?.id ?? null,
-        message: `Course deleted: ${course.title}`,
-        metadata: { course_id: course.id }
+        message: 'Course deleted',
+        metadata: {
+          domain: { course_id: course.id, course_title: course.title ?? null },
+        },
     });
 
     res.redirect('/courses');
@@ -248,8 +280,13 @@ router.post(
         event_type: 'course_enrolled',
         severity: 'info',
         actor_user_id: req.user.id,
-        message: `User enrolled in course: ${req.resource.course.title}`,
-        metadata: { course_id: req.resource.course.id },
+        message: 'User enrolled in course',
+        metadata: {
+          domain: {
+            course_id: req.resource.course.id,
+            course_title: req.resource.course.title ?? null,
+          },
+        },
       });
 
       res.redirect(`/courses/${req.resource.course.id}`);
@@ -273,8 +310,13 @@ router.post(
         event_type: 'course_unenrolled',
         severity: 'info',
         actor_user_id: req.user.id,
-        message: `User unenrolled from course: ${req.resource.course.title}`,
-        metadata: { course_id: req.resource.course.id },
+        message: 'User unenrolled from course',
+        metadata: {
+          domain: {
+            course_id: req.resource.course.id,
+            course_title: req.resource.course.title ?? null,
+          },
+        },
       });
 
       res.redirect(`/courses/${req.resource.course.id}`);

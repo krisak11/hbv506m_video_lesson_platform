@@ -10,12 +10,31 @@ const { safeAuditLog } = require('../auditLogger');
 const ABILITIES = require('./abilities');
 
 function forbidden(req, res, ability) {
+  const courseId = req.resource?.course?.id ?? null;
+  const lessonId = req.resource?.lesson?.id ?? null;
+  const userId = req.resource?.user?.id ?? null;
+  const enrollmentId = req.resource?.enrollment?.id ?? null;
+
   safeAuditLog(req, {
     event_type: 'access_denied',
     severity: 'warn',
     actor_user_id: req.user?.id ?? null,
     message: `Access denied: ${ability}`,
-    metadata: { path: req.path, method: req.method }
+    metadata: {
+      outcome: {
+        success: false,
+        failure_reason: 'permission_denied',
+      },
+      domain: {
+        course_id: courseId,
+        lesson_id: lessonId,
+        user_id: userId,
+        enrollment_id: enrollmentId,
+      },
+      details: {
+        ability,
+      },
+    },
   });
 
   return res.status(403).send('Forbidden');

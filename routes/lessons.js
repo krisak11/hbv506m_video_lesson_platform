@@ -16,7 +16,7 @@ const {
 const lessonsRepo = require('../db/lessonsRepo');
 
 // Utils
-const { safeAuditLog } = require('../utils/auditLogger');
+const { safeAuditLog, getChangedFields } = require('../utils/auditLogger');
 const coursePolicy = require('../utils/policies/coursePolicy'); // for includeUnpublished decision
 const lessonPolicy = require('../utils/policies/lessonPolicy');
 
@@ -87,6 +87,17 @@ router.post(
       const is_published = req.body.is_published === '1' ? 1 : 0;
 
       if (!title) {
+        safeAuditLog(req, {
+          event_type: 'lesson_create_failed',
+          severity: 'warn',
+          actor_user_id: req.user?.id ?? null,
+          message: 'Lesson create failed',
+          metadata: {
+            domain: { course_id: course.id, course_title: course.title ?? null },
+            outcome: { success: false, failure_reason: 'validation_error' },
+          },
+        });
+
         res.locals.pageCss = '/stylesheets/pages/courses.css';
         return res.status(400).render('lessons/new', {
           course,
@@ -114,8 +125,15 @@ router.post(
         event_type: 'lesson_created',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        message: `Lesson created in course ${course.id} (lessonID: ${newID}) ${title}`,
-        metadata: { course_id: course.id, lesson_id: newID, title },
+        message: 'Lesson created',
+        metadata: {
+          domain: {
+            course_id: course.id,
+            course_title: course.title ?? null,
+            lesson_id: newID,
+            lesson_title: title,
+          },
+        },
       });
 
       res.redirect(`/lessons?course_id=${course.id}`);
@@ -199,6 +217,22 @@ router.post(
       const is_published = req.body.is_published === '1' ? 1 : 0;
 
       if (!title) {
+        safeAuditLog(req, {
+          event_type: 'lesson_update_failed',
+          severity: 'warn',
+          actor_user_id: req.user?.id ?? null,
+          message: 'Lesson update failed',
+          metadata: {
+            domain: {
+              course_id: course.id,
+              course_title: course.title ?? null,
+              lesson_id: lesson.id,
+              lesson_title: lesson.title ?? null,
+            },
+            outcome: { success: false, failure_reason: 'validation_error' },
+          },
+        });
+
         res.locals.pageCss = '/stylesheets/pages/courses.css';
         return res.status(400).render('lessons/edit', {
           course,
@@ -226,8 +260,18 @@ router.post(
         event_type: 'lesson_updated',
         severity: 'info',
         actor_user_id: req.user?.id ?? null,
-        message: `Lesson updated (ID: ${lesson.id}): ${title}`,
-        metadata: { lesson_id: lesson.id, course_id: course.id, title },
+        message: 'Lesson updated',
+        metadata: {
+          domain: {
+            course_id: course.id,
+            course_title: course.title ?? null,
+            lesson_id: lesson.id,
+            lesson_title: title || lesson.title || null,
+          },
+          details: {
+            updatedFields: getChangedFields(req.body),
+          },
+        },
       });
 
       res.redirect(`/lessons?course_id=${course.id}`);
@@ -256,8 +300,15 @@ router.post(
         event_type: 'lesson_deleted',
         severity: 'warn',
         actor_user_id: req.user?.id ?? null,
-        message: `Lesson deleted (ID: ${lesson.id}): ${lesson.title}`,
-        metadata: { lesson_id: lesson.id, course_id: course.id, title: lesson.title },
+        message: 'Lesson deleted',
+        metadata: {
+          domain: {
+            course_id: course.id,
+            course_title: course.title ?? null,
+            lesson_id: lesson.id,
+            lesson_title: lesson.title ?? null,
+          },
+        },
       });
 
       res.redirect(`/lessons?course_id=${course.id}`);
