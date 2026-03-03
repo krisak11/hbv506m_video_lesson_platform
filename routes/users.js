@@ -10,7 +10,7 @@ const { safeAuditLog } = require('../utils/auditLogger');
 router.get(
   '/:id', 
   loadUser('id'),
-  authorize(ABILITIES.USER_VIEW),
+  authorize(ABILITIES.ADMIN_PANEL),
   function (req, res, next) {
     try {
       const user = req.resource.user;
@@ -30,7 +30,7 @@ router.get(
 router.post(
   '/:id',
   loadUser('id'),
-  authorize(ABILITIES.USER_EDIT),
+  authorize(ABILITIES.ADMIN_PANEL),
   function (req, res, next) {
     try {
       const user = req.resource.user;
