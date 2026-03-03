@@ -88,7 +88,7 @@ router.post('/:id/activate', loadUser('id'), authorize(ABILITIES.USER_ACTIVATE),
   try {
     const userToActivate = req.resource.user;
 
-    usersRepo.updateUser(userToActivate.id, { is_active: false });
+    usersRepo.updateUser(userToActivate.id, { is_active: true });
 
     safeAuditLog(req, {
       event_type: 'admin_activate_user',
