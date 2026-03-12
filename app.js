@@ -23,6 +23,7 @@ const adminPolicy = require('./utils/policies/adminPolicy');
 
 const requireAuth = require('./utils//middleware/requireAuth');
 let expressLayouts = require('express-ejs-layouts');
+const { safeAuditLog } = require('./utils/auditLogger');
 
 function createApp({ sessionStore } = {}) {
   const app = express();
@@ -154,8 +155,16 @@ function createApp({ sessionStore } = {}) {
   });
 
   app.use(function (err, req, res, next) {
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {}; // Stack tracing on error page for development only
+    safeAuditLog(req, {
+      event_type: 'server_error',
+      severity: 'error',
+      actor_user_id: req.user?.id ?? null,
+      message: `Unhandled server error: ${err.message}`,
+      metadata_json: JSON.stringify({ stack: err.stack })
+    })
+
+    res.locals.message = 'An unexpected error occurred. Please try again later.'
+    res.locals.status = err.status || 500;
     res.status(err.status || 500);
     res.render('error');
   });
