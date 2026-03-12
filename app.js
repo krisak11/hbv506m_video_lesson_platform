@@ -143,13 +143,24 @@ function createApp({ sessionStore } = {}) {
 
 
   app.use(function (req, res, next) {
-    next(createError(404));
+    res.locals.message = 'Page not found.'
+    res.locals.status = 404
+    res.status(404).render('error')
   });
 
   // CSRF error handler
   app.use((err, req, res, next) => {
     if (err.code === 'EBADCSRFTOKEN') {
-      return res.status(403).send('Invalid CSRF token');
+      safeAuditLog(req, {
+        event_type: 'csrf_violation',
+        severity: 'warn',
+        actor_user_id: req.user?.id ?? null,
+        message: 'Invalid or missing CSRF token',
+      });
+
+      res.locals.message = 'Invalid form submission. Please try again.';
+      res.locals.status = 403
+      return res.status(403).render('error');
     }
     next(err);
   });
